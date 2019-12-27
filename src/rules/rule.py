@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import List, Union
+from typing import Union, Set
+
 
 class Neuron:
     """
@@ -15,12 +16,31 @@ class Neuron:
     def __str__(self):
         return "h_" + str(self.layer) + "," + str(self.index)
 
+    def __eq__(self, other):
+        return (
+            self.__class__ == other.__class__ and
+            self.index == other.index and
+            self.layer == other.layer
+        )
+
+    def __hash__(self):
+        return hash(str(self))
+
 class TermOperator(Enum):
     GreaterThan = '>'
     LessThanEq = '<='
 
     def __str__(self) -> str:
         return self.value
+
+    def inverse(self):
+        """
+        Return inverse of the term operator
+        """
+        if self.GreaterThan:
+            return self.LessThanEq
+        if self.LessThanEq:
+            return self.GreaterThan
 
 class Term:
     """
@@ -41,12 +61,30 @@ class Term:
     def __str__(self):
         return '(' + str(self.operand_1) + ' ' + str(self.operator) + ' ' + str(self.operand_2) + ')'
 
+    def __eq__(self, other):
+        return (
+            self.__class__ == other.__class__ and
+            self.operand_1 == other.operand_1 and
+            self.operator == other.operator and
+            self.operand_2 == other.operand_2
+        )
+
+    def __hash__(self):
+        return hash(str(self))
+
     def apply(self, value):
         if self.operator is TermOperator.GreaterThan:
             return value > self.operand_2
 
         elif self.operator is TermOperator.LessThanEq:
             return value <= self.operand_2
+
+    def inverse(self):
+        """
+        Return inverse of the term i.e. the same term with opposite sign
+        """
+        return Term(self.operand_1, str(self.operator.inverse()), self.operand_2)
+
 
 class ClassConclusion:
     """
@@ -61,6 +99,15 @@ class ClassConclusion:
     def __str__(self):
         return 'class=' + self.class_name
 
+    def __eq__(self, other):
+        return (
+            self.__class__ == other.__class__ and
+            self.class_name == other.class_name
+        )
+
+    def __hash__(self):
+        return hash(str(self))
+
 class Rule:
     """
     Represent if-then rule (path from root to leaf in RuleTree with premise of ANDed Terms and Conclusion
@@ -68,23 +115,32 @@ class Rule:
 
     __slots__ = ['premise', 'conclusion']
 
-    def __init__(self, premise: List[Term], conclusion: Union[Term, ClassConclusion]):
+    def __init__(self, premise: Set[Term], conclusion: Union[Term, ClassConclusion]):
         self.premise = premise
         self.conclusion = conclusion
         # self.confidence = confidence TODO ADD/DO SOMETHING WITH CONDIFENCE
-
 
     def __str__(self):
         conditions_str = [str(term) for term in self.premise]
         return "IF " + (" AND ").join(conditions_str) + " THEN " + str(self.conclusion)
 
-    def get_terms(self) -> List[Term]:
+    def __eq__(self, other):
+        return (
+            self.__class__ == other.__class__ and
+            self.premise == other.premise and
+            self.conclusion == other.conclusion
+        )
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def get_terms(self) -> Set[Term]:
         """
         return terms in rule premise
         """
         return self.premise
 
-
+"""
 first_tree_rules = []
 first_tree_rules.append(Rule([Term(Neuron(2,1), '>', 0.6), Term(Neuron(2,4), '>', 0.3)], conclusion=ClassConclusion('0')))
 first_tree_rules.append(Rule([Term(Neuron(2,1), '>', 0.6), Term(Neuron(2,4),'<=', 0.3)], conclusion=ClassConclusion('1')))
@@ -105,7 +161,6 @@ print()
 for rule in sec_tree_rules:
     print(rule)
 
-"""
 Substitution:
 Requires taking all the terms in a rule from layer x+1
 seeing if all can be matched to a conclusion of rule from layer x = rules r
