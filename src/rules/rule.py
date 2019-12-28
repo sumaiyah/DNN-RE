@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Union, Set
+from typing import Union, Set, List
 
 
 class Neuron:
@@ -85,7 +85,6 @@ class Term:
         """
         return Term(self.operand_1, str(self.operator.inverse()), self.operand_2)
 
-
 class ClassConclusion:
     """
     Represent conclusion of a rule assigning a classification e.g. OUT=A
@@ -140,19 +139,50 @@ class Rule:
         """
         return self.premise
 
+    @staticmethod
+    def get_terms_from_ruleset(rule_set: Set['Rule']) -> Set[Term]:
+        """
+        Given a set of Rules, return all terms
+        """
+        terms = set()
+        for rule in rule_set:
+            terms = terms.union(rule.get_terms())
+
+        return terms
+
+    @staticmethod
+    def get_initial_rule(layer: int, index: int, split: float=0.5, class_name: str= 'default'):
+        """
+        Return rule with initial split point of 0.5
+        """
+        return Rule(premise={Term(Neuron(layer, index), '>', split)},
+                    conclusion=ClassConclusion(class_name))
+
+#
+# sets = [set() for _ in range(3)]
+#
+# first_tree_rules = set()
+# first_tree_rules.add(Rule({Term(Neuron(2,1), '>', 0.6), Term(Neuron(2,4), '>', 0.3)}, conclusion=ClassConclusion('0')))
+# first_tree_rules.add(Rule({Term(Neuron(2,1), '>', 0.6), Term(Neuron(2,4),'<=', 0.3)}, conclusion=ClassConclusion('1')))
+# first_tree_rules.add(Rule({Term(Neuron(2,1), '>', 0.6), Term(Neuron(2,4),'<=', 0.3)}, conclusion=ClassConclusion('1')))
+# first_tree_rules.add(Rule({Term(Neuron(2,1), '<=', 0.6)}, conclusion=ClassConclusion('1')))
+# sets[0] = first_tree_rules
+#
+# sec_tree_rules = set()
+# sec_tree_rules.add(Rule({Term(Neuron(1,2), '>', 0.4), Term(Neuron(1,10),'<=', 0.1)}, conclusion=Term(Neuron(2,3), '<=', 0.5)))
+# sec_tree_rules.add(Rule({Term(Neuron(1,2), '>', 0.4), Term(Neuron(1,10),'>', 0.1)}, conclusion=Term(Neuron(2,4), '>', 0.3)))
+#
+# sec_tree_rules.add(Rule({Term(Neuron(1,2), '<=', 0.4), Term(Neuron(1,1),'<=', 0.4)}, conclusion=Term(Neuron(2,1), '>', 0.6)))
+# sec_tree_rules.add(Rule({Term(Neuron(1,2), '<=', 0.4), Term(Neuron(1,1),'>', 0.4)}, conclusion=Term(Neuron(2,1), '<=', 0.6)))
+# sets[1] = sec_tree_rules
+#
+# print()
+# for ruleset in sets:
+#     for term in (Rule.get_terms_from_ruleset(ruleset)):
+#         print(term, end=' ')
+#     print()
+
 """
-first_tree_rules = []
-first_tree_rules.append(Rule([Term(Neuron(2,1), '>', 0.6), Term(Neuron(2,4), '>', 0.3)], conclusion=ClassConclusion('0')))
-first_tree_rules.append(Rule([Term(Neuron(2,1), '>', 0.6), Term(Neuron(2,4),'<=', 0.3)], conclusion=ClassConclusion('1')))
-first_tree_rules.append(Rule([Term(Neuron(2,1), '<=', 0.6)], conclusion=ClassConclusion('1')))
-
-sec_tree_rules = []
-sec_tree_rules.append(Rule([Term(Neuron(1,2), '>', 0.4), Term(Neuron(1,10),'<=', 0.1)], conclusion=Term(Neuron(2,3), '<=', 0.5)))
-sec_tree_rules.append(Rule([Term(Neuron(1,2), '>', 0.4), Term(Neuron(1,10),'>', 0.1)], conclusion=Term(Neuron(2,4), '>', 0.3)))
-
-sec_tree_rules.append(Rule([Term(Neuron(1,2), '<=', 0.4), Term(Neuron(1,1),'<=', 0.4)], conclusion=Term(Neuron(2,1), '>', 0.6)))
-sec_tree_rules.append(Rule([Term(Neuron(1,2), '<=', 0.4), Term(Neuron(1,1),'>', 0.4)], conclusion=Term(Neuron(2,1), '<=', 0.6)))
-
 for rule in first_tree_rules:
     print(rule)
 
