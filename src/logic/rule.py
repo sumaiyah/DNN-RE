@@ -77,7 +77,7 @@ class Term(Literal):
         )
 
     def __hash__(self):
-        return hash(str(self))
+        return hash((self.neuron, self.operator, self.operand))
 
     def apply(self, value):
         if self.operator is TermOperator.GreaterThan:
