@@ -1,0 +1,11 @@
+TOCHECK
+
+- do i need DisjunctiveClause?
+- do i need CNF?
+
+- some way of asserting all clauses given to a normal form are of the same type
+- some sort of to_dnf method?
+
+- todo should i be doing something with rule confidence?
+
+- figure out how to use iterators n stuff its porbs useful here!
