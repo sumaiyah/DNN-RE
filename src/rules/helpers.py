@@ -1,5 +1,8 @@
-from typing import Dict, Union
+"""
+Helper methods
+"""
 
+from typing import Dict, Union
 import json
 import re
 
@@ -16,7 +19,7 @@ def parse_variable_str_to_dict(variables_str) -> Dict[str, Union[str, int, float
     """
     Parse string of variables of the form 'variable_name="val" variable_name="val" variable_name="val"' into dict
 
-    Where variable vals are of the correct type. This is the form C5 stores output data
+    Where variable vals are cast to the correct type. This is the form C5 stores output data
     """
     variables = {}
 

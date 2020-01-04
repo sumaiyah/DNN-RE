@@ -27,7 +27,7 @@ class TermOperator(Enum):
 
 class Neuron:
     """
-    Represent specific neuron in the neural network. Immutable
+    Represent specific neuron in the neural network. Immutable and Hashable.
     """
 
     __slots__ = ['layer', 'index']
@@ -59,7 +59,7 @@ class Neuron:
 
 class Term:
     """
-    Represent a condition indicating whether the activation value of a neuron is above/below a threshold
+    Represent a condition indicating if activation value of neuron is above/below a threshold. Immutable and Hashable.
     """
 
     __slots__ = ['neuron', 'operator', 'threshold']
@@ -90,7 +90,7 @@ class Term:
     def __hash__(self):
         return hash((self.neuron, self.operator, self.threshold))
 
-    def negate(self):
+    def negate(self) -> 'Term':
         """
         Return term with opposite sign
         """
@@ -103,11 +103,14 @@ class Term:
         return self.operator.eval()(value, self.threshold)
 
     def get_neuron_index(self):
+        """
+        Return index of neuron specified in the term
+        """
         return self.neuron.get_index()
 
 class Conclusion:
     """
-    Represent rule conclusion
+    Represent rule conclusion. Immutable and Hashable.
     """
     __slots__ = ['class_name']
 
@@ -133,14 +136,13 @@ class Conclusion:
 
 class Rule:
     """
-    Represent IF-THEN rule with premise as conjunction of terms and conclusion
+    Represent IF-THEN rule with premise as conjunction of terms and conclusion. Immutable and Hashable.
     """
-    __slots__ = ['premise', 'conclusion', 'confidence']
+    __slots__ = ['premise', 'conclusion']
 
-    def __init__(self, premise: Set[Term], conclusion: Union[Term, Conclusion], confidence: float=0):
+    def __init__(self, premise: Set[Term], conclusion: Union[Term, Conclusion]):
         super(Rule, self).__setattr__('premise', premise)
         super(Rule, self).__setattr__('conclusion', conclusion)
-        super(Rule, self).__setattr__('confidence', confidence)
 
     def __setattr__(self, name, value):
         msg = "'%s' is immutable, can't modify %s" % (self.__class__,
@@ -158,8 +160,8 @@ class Rule:
             self.conclusion == other.conclusion
         )
 
-    def __hash__(self):
-        return hash(str(self))
+    def __hash__(self): # todo check this
+        return hash((self.conclusion))
 
     def get_premise(self) -> Set[Term]:
         return self.premise
@@ -169,7 +171,5 @@ class Rule:
 
     @classmethod
     def create_initial_rule(self, neuron_layer: int, neuron_index: int, threshold: float, class_name: str):
-        # todo should this confidence be 1??
         return self(premise={Term(Neuron(neuron_layer, neuron_index), '>', threshold)},
-                    conclusion=Conclusion(class_name),
-                    confidence=1)
+                    conclusion=Conclusion(class_name))

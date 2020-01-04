@@ -2,13 +2,14 @@ from typing import Set
 import pandas as pd
 
 from rules.rule import Rule, Term, Neuron
-from rules.C5_helpers import parse_variable_str_to_dict
+from rules.helpers import parse_variable_str_to_dict
 
 # Interface to R running embedded in a Python process
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
-from rpy2.robjects import pandas2r
-pandas2ri.activate()  # activate Pandas conversion between R objects and Python objects
+from rpy2.robjects import pandas2ri
+# activate Pandas conversion between R objects and Python objects
+pandas2ri.activate()
 
 # C50 R package is interface to C5.0 classification model
 C50 = importr('C50', lib_loc='C:/Users/sumaiyah/Documents/sumaiyah/R/win-library/3.5')
