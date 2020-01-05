@@ -2,10 +2,14 @@ MODEL_ACTIVATIONS_PATH = 'misc_data/'
 TRAIN_DATA_PATH = 'misc_data/XOR_train_data.csv'
 TEST_DATA_PATH = 'misc_data/XOR_test_data.csv'
 MODEL_PATH = 'misc_data/XOR.h5'
-CLASS_ENCODINGS = {0: 'Zero', 1: 'One'}
+
 
 import pandas as pd
 import keras.models as keras
+
+from collections import namedtuple
+ClassEncoding = namedtuple('ClassEncoding', 'name index')
+CLASS_ENCODINGS = (ClassEncoding(name='Zero', index=0), ClassEncoding(name='One', index=1))
 
 class Model:
     """

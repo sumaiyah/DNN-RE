@@ -1,8 +1,9 @@
 from typing import Set
 import pandas as pd
 
-from rules.rule import Rule, Term, Neuron
+from rules.term import Term, Neuron
 from rules.helpers import parse_variable_str_to_dict
+from rules import Rule
 
 # Interface to R running embedded in a Python process
 from rpy2.robjects.packages import importr
@@ -44,7 +45,7 @@ def _parse_C5_rule_str(rule_str, rule_conclusion_map) -> Set[Rule]:
 
             rule_terms.add(Term(neuron=term_neuron, operator=term_operator, threshold=term_operand))
 
-        rules_set.add(Rule(premise=rule_terms, conclusion=rule_conclusion))
+        rules_set.add(Rule.from_term_set(premise=rule_terms, conclusion=rule_conclusion))
 
     return rules_set
 

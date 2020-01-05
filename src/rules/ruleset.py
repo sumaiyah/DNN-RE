@@ -2,160 +2,94 @@
 Represent a ruleset made up of rules
 """
 
-from typing import Set, Dict, List
+from typing import Set, Dict
 
-from rules.rule import Rule, Term, Union, Conclusion, Neuron
+from rules.term import Term
+from rules.rule import ConjunctiveClause
+from rules import Rule
+
+def add_rules_to_dict(rules: Set[Rule], rule_conc_to_premises: Dict):
+    # Adds rules to dictionary that mapping conclusions to sets of ConjunctiveClauses
+    for rule in rules:
+        if rule.get_conclusion() in rule_conc_to_premises:
+            rule_conc_to_premises[rule.get_conclusion()] = \
+                rule_conc_to_premises[rule.get_conclusion()].union(rule.get_premise())
+        else:
+            rule_conc_to_premises[rule.get_conclusion()] = rule.get_premise()
 
 class Ruleset:
     """
-    Ruleset stores a set of Rules in DNF
+    Represents a set of disjunctive rules
     """
-
     def __init__(self, rules: Dict = None):
         if rules is None:
             rules = {}
+
         self.rules = rules
 
     @classmethod
     def from_set(cls, rules: Set[Rule] = None):
         """
-        Convert a set of Rules into a dict mapping a conclusion to a list of Set[Terms] i.e disjunctive premises
+        Initialise from a set of rules, convert into a dictionary mapping conclusions to sets of ConjunctiveClauses
         """
         if rules is None:
             rules = set()
 
-        rules_conc_to_premises = {} # Dict[Union[Term, Conclusion], List[Set[Term]]]
+        rules_dict = {}
+        add_rules_to_dict(rules=rules, rule_conc_to_premises=rules_dict)
 
-        for rule in rules:
-            if rule.get_conclusion() in rules_conc_to_premises:
-                # Duplicate rules are ignored
-                if not rule.get_premise() in rules_conc_to_premises[rule.get_conclusion()]:
-                    rules_conc_to_premises[rule.get_conclusion()].append(rule.get_premise())
-            else:
-                rules_conc_to_premises[rule.get_conclusion()] = [rule.get_premise()]
+        return cls(rules=rules_dict)
 
-        return cls(rules=rules_conc_to_premises)
+    def get_rule_premises_by_conclusion(self, conclusion) -> Set[ConjunctiveClause]:
+        """
+        Return a set of conjunctive clauses that all imply a given conclusion
+        """
+        return self.rules[conclusion] if conclusion in self.rules else set()
 
     def add_rules(self, rules: Set[Rule]):
-        for rule in rules:
-            if rule.get_conclusion() in self.rules:
-                # Duplicate rules are ignored
-                if not rule.get_premise() in self.rules[rule.get_conclusion()]:
-                    self.rules[rule.get_conclusion()].append(rule.get_premise())
-            else:
-                self.rules[rule.get_conclusion()] = [rule.get_premise()]
+        # todo change to union later?
+        """
+        Return new ruleset with containing rules from both
+        """
+        add_rules_to_dict(rules, rule_conc_to_premises=self.rules)
 
-    def get_terms_from_rule_bodies(self) -> Set[Term]:
+    def get_terms_from_rule_premises(self) -> Set[Term]:
+        """
+        Return all the terms present in the bodies of all the rules in the ruleset
+        """
+        # Values values in rules dictionary are all the sets of conjunctive clauses
         terms = set()
-
-        for rule_conc in self.rules.keys():
-            for premise in self.rules[rule_conc]:
-                terms = terms.union(premise)
-
+        for conjunctive_clause_set in self.rules.values():
+            for clause in conjunctive_clause_set:
+                terms = terms.union(clause.get_terms())
         return terms
 
-    def get_conclusions(self):
-        return set(self.rules.keys())
+    def print_dnf(self):
+        # print rules in DNF form
+        ruleset_str = '\n'
 
-    def get_premises_given_conclusion(self, conclusion) -> List[Set[Term]]:
-        return self.rules[conclusion]
+        for rule_conc in self.rules.keys():
+            ruleset_str += str(Rule(premise=self.rules[rule_conc], conclusion=rule_conc)) + '\n'
 
-    def __str__(self):
-        # ruleset_str = '\n'
-        #
-        # for rule_conc in self.rules.keys():
-        #     for premise in self.rules[rule_conc]:
-        #         ruleset_str += str(Rule(premise, rule_conc)) + '\n'
-        #
-        # ruleset_str += '\n'
-        # return ruleset_str
+        ruleset_str += '\n'
+        return ruleset_str
 
-    def merge(self, current_output_rs):
-        new_rules = {}
+    def print_all(self):
+        # prints all rules seperately. Each rule is conjunction of terms
 
-        # for each DNF rule
-        for rule_conc in current_output_rs.get_conclusions():
-            old_premises = current_output_rs.get_premises_given_conclusion(rule_conc)
+        # GET RULEs
+        rules = set()
+        for rule_conc in self.rules.keys():
+            for clause in self.rules[rule_conc]:
+                rules.add(Rule(premise={clause}, conclusion=rule_conc))
 
-            for old_premise in old_premises:
-                for term in old_premise:
-                    if term in self.get_conclusions():
-                        pass
-                # for conc in self.get_conclusions():
-                #     print(conc, end=' ')
-                # print(old_premise)
-            # intermediate_conclusions = current_output_rs.get_premises_given_conclusion(rule_conc)
-            #
-            # # new premises
-            # new_premises = []
-            # for conclusion in intermediate_conclusions:
-            #     if conclusion in self.get_conclusions():
-            #         premises = self.get_premises_given_conclusion(conclusion)
-            #
-            #         for premise in premises:
-            #             if premise not in new_premises:
-            #                 new_premises.append(premise)
-            #
-            # new_rules[rule_conc] = new_premises
+        # print str
+        ruleset_str = '\n'
+        for rule in rules:
+            ruleset_str += str(rule) + '\n'
 
-        rs = Ruleset(new_rules)
-        print('hiiiiiiiiiiiiiiiiiiiii')
-        print(rs)
-        return rs
+        ruleset_str += '\n'
+        return ruleset_str
 
 
 
-class ClassRules:
-    """
-    Represent rules generated for each class. Holds intermediate layer-wise rules
-    """
-    def __init__(self, classification: str, n_layers):
-        self.classification = classification
-        self.layer_rulesets = [Ruleset() for _ in range(0, n_layers)]
-
-    def get_layer_rules(self, from_layer_index: int) -> Ruleset:
-        return self.layer_rulesets[from_layer_index]
-
-    def add_rules_to_layer(self, rules: Set[Rule], from_layer_index: int):
-        self.get_layer_rules(from_layer_index).add_rules(rules)
-
-    def get_terms_from_rule_bodies_in_layer(self, from_layer_index: int) -> Set[Term]:
-        return self.get_layer_rules(from_layer_index).get_terms_from_rule_bodies()
-
-    # TODO CHANGE THIS!!
-    def set_initial_rule(self, output_layer, class_index):
-        initial_rule = Rule.create_initial_rule(neuron_layer=output_layer, neuron_index=class_index,
-                                                threshold=0.5, class_name=self.classification)
-        self.add_rules_to_layer({initial_rule}, from_layer_index=output_layer)
-
-    def __str__(self):
-        rs_str = ''
-        layer = 0
-        for layer_rs in self.layer_rulesets:
-            if layer == (len(self.layer_rulesets) - 1):
-                rs_str += 'LAYER ' + str(layer) + ' -> ' + 'OUTPUT' + ': '
-            else:
-                rs_str += 'LAYER ' + str(layer) + ' -> ' + str(layer + 1) + ': '
-            rs_str += str(layer_rs)
-
-            layer += 1
-        return rs_str
-
-    def merge_layerwise_rules(self):
-        """
-        Merge layer rulesets into 1 ruleset describing behaviour of output in terms of the network inputs
-        """
-        n_layers = len(self.layer_rulesets)
-
-        output_ruleset = self.get_layer_rules(n_layers-1)
-
-        sectolast_ruleset = self.get_layer_rules(n_layers-2)
-
-        print(output_ruleset)
-        print(sectolast_ruleset)
-
-        sectolast_ruleset.merge(output_ruleset)
-        # for i in reversed(range(0, n_layers-1)):
-        #     output_ruleset = self.get_layer_rules(i).merge(output_ruleset)
-
-        print('-----------------------------------------------------------------------------------')

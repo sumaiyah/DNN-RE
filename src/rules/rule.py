@@ -1,114 +1,15 @@
 """
-Represent rules - all classes here are immutable and hashable
+Represent a total rule with a premise in Disjunctive Normal Form (DNF) and conclusion a class declaration
 """
 
-from enum import Enum
+from rules.term import Term, Neuron
+# from rules.ruleset import Ruleset
 from typing import Set, Union
 
-class TermOperator(Enum):
-    GreaterThan = '>'
-    LessThanEq = '<='
-
-    def __str__(self) -> str:
-        return self.value
-
-    def negate(self):
-        if self.GreaterThan:
-            return self.LessThanEq
-        if self.LessThanEq:
-            return self.GreaterThan
-
-    def eval(self):
-        import operator
-        if self.GreaterThan:
-            return operator.gt
-        if self.LessThanEq:
-            return operator.le
-
-class Neuron:
-    """
-    Represent specific neuron in the neural network. Immutable and Hashable.
-    """
-
-    __slots__ = ['layer', 'index']
-
-    def __init__(self, layer: int, index: int):
-        super(Neuron, self).__setattr__('layer', layer)
-        super(Neuron, self).__setattr__('index', index)
-
-    def __str__(self):
-        return 'h_' + str(self.layer) + ',' + str(self.index)
-
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
-                                            name)
-        raise AttributeError(msg)
-
-    def __eq__(self, other):
-        return (
-            self.__class__ == other.__class__ and
-            self.index == other.index and
-            self.layer == other.layer
-        )
-
-    def __hash__(self):
-        return hash((self.layer, self.index))
-
-    def get_index(self):
-        return self.index
-
-class Term:
-    """
-    Represent a condition indicating if activation value of neuron is above/below a threshold. Immutable and Hashable.
-    """
-
-    __slots__ = ['neuron', 'operator', 'threshold']
-
-    def __init__(self, neuron: Neuron, operator: str, threshold: float):
-        super(Term, self).__setattr__('neuron', neuron)
-        super(Term, self).__setattr__('threshold', threshold)
-
-        operator: TermOperator = TermOperator(operator)
-        super(Term, self).__setattr__('operator', operator)
-
-    def __str__(self):
-        return '(' + str(self.neuron) + ' ' + str(self.operator) + ' ' + str(self.threshold) + ')'
-
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
-                                            name)
-        raise AttributeError(msg)
-
-    def __eq__(self, other):
-        return (
-                self.__class__ == other.__class__ and
-                self.neuron == other.neuron and
-                self.operator == other.operator and
-                self.threshold == other.threshold
-        )
-
-    def __hash__(self):
-        return hash((self.neuron, self.operator, self.threshold))
-
-    def negate(self) -> 'Term':
-        """
-        Return term with opposite sign
-        """
-        return Term(self.neuron, str(self.operator.negate()), self.threshold)
-
-    def apply(self, value):
-        """
-        Apply condition to a value
-        """
-        return self.operator.eval()(value, self.threshold)
-
-    def get_neuron_index(self):
-        """
-        Return index of neuron specified in the term
-        """
-        return self.neuron.get_index()
+import itertools
 
 class Conclusion:
+    # todo does this even need to be hashable/immutble??
     """
     Represent rule conclusion. Immutable and Hashable.
     """
@@ -134,42 +35,128 @@ class Conclusion:
     def __hash__(self):
         return hash((self.class_name))
 
-class Rule:
+class ConjunctiveClause:
     """
-    Represent IF-THEN rule with premise as conjunction of terms and conclusion. Immutable and Hashable.
+    Represent conjunctive clause. All terms in clause are ANDed together. Immutable and Hashable.
     """
-    __slots__ = ['premise', 'conclusion']
+    __slots__ = ['terms']
 
-    def __init__(self, premise: Set[Term], conclusion: Union[Term, Conclusion]):
-        super(Rule, self).__setattr__('premise', premise)
-        super(Rule, self).__setattr__('conclusion', conclusion)
-
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
-                                                      name)
-        raise AttributeError(msg)
+    def __init__(self, terms: Set[Term] = None):
+        if terms is None:
+            terms = set()
+        self.terms = terms
 
     def __str__(self):
-        conj_terms = ' AND '.join([str(term) for term in self.premise])
-        return "IF " + str(conj_terms) + " THEN " + str(self.conclusion)
+        terms_str = [str(term) for term in self.terms]
+        return '[' + ' AND '.join(terms_str) + ']'
 
     def __eq__(self, other):
         return (
-            self.__class__ == other.__class__ and
-            self.premise == other.premise and
-            self.conclusion == other.conclusion
+                self.__class__ == other.__class__ and
+                self.terms == other.terms
         )
 
-    def __hash__(self): # todo check this
-        return hash((self.conclusion))
+    def __hash__(self):
+        x = hash(1)
+        for term in self.terms:
+            x = x ^ hash(term)
+        return x
 
-    def get_premise(self) -> Set[Term]:
+    def get_terms(self) -> Set[Term]:
+        return self.terms
+
+    def union(self, other) -> 'ConjunctiveClause':
+        # return new conjunctive clause that has all terms from both
+        terms = self.get_terms().union(other.get_terms())
+        return ConjunctiveClause(terms)
+
+class Rule:
+    """
+    Represent rule in DNF form i.e. (t1 AND t2 AND ..) OR ( ...) OR ... -> t6 _
+    """
+    def __init__(self, premise: Set[ConjunctiveClause], conclusion: Union[Term, Conclusion]):
+        self.premise = premise
+        self.conclusion = conclusion
+
+    def get_premise(self) -> Set[ConjunctiveClause]:
         return self.premise
 
     def get_conclusion(self) -> Union[Term, Conclusion]:
         return self.conclusion
 
+    def __eq__(self, other):
+        return (
+                self.__class__ == other.__class__ and
+                self.premise == other.premise and
+                self.conclusion == other.conclusion
+        )
+
+    def __hash__(self):
+        return hash((self.conclusion))
+
+    def get_terms_from_rule_premise(self) -> Set[Term]:
+        # return terms from all premises with no duplicates
+        terms = set()
+        for clause in self.premise:
+            terms = terms.union(clause.get_terms())
+        return terms
+
+    def __str__(self):
+        premise_str = [str(clause) for clause in self.get_premise()]
+        return "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.get_conclusion())
+
     @classmethod
-    def create_initial_rule(self, neuron_layer: int, neuron_index: int, threshold: float, class_name: str):
-        return self(premise={Term(Neuron(neuron_layer, neuron_index), '>', threshold)},
-                    conclusion=Conclusion(class_name))
+    def from_term_set(cls, premise: Set[Term], conclusion: Union[Conclusion, Term]):
+        """
+        Initialise Rule given a single clause as a set of terms
+        """
+        rule_premise = {ConjunctiveClause(terms=premise)}
+        return cls(premise=rule_premise, conclusion=conclusion)
+
+    @classmethod
+    def initial_rule(cls, output_layer, neuron_index, class_name, threshold):
+        rule_premise = ConjunctiveClause(terms={Term(Neuron(layer=output_layer, index=neuron_index), '>', threshold)})
+        rule_conclusion = Conclusion(class_name)
+
+        return cls(premise={rule_premise}, conclusion=rule_conclusion)
+
+    def merge(self, intermediate_rules: 'Ruleset') -> 'Rule':
+        """
+        Merge the total rule with the set of intermediate rules from the previous layer
+        """
+        new_premise_clauses = set()
+
+        # for each clause in the total rule
+        for old_premise_clause in self.get_premise():
+
+            # list of sets of conjunctive clauses that are all conjunctive
+            conj_new_premise_clauses = []
+            for old_premise_term in old_premise_clause.get_terms():
+                conj_new_premise_clauses.append(intermediate_rules.get_rule_premises_by_conclusion(old_premise_term))
+
+            # When combined into a cartesian product, get all possible concjunctive clauses for merged rule
+            conj_new_premise_clauses_combinations = itertools.product(*tuple(conj_new_premise_clauses))
+
+            # given tuples of ConjunctiveClauses
+            for premise_clause_tuple in conj_new_premise_clauses_combinations:
+                new_clause = ConjunctiveClause()
+                for premise_clause in premise_clause_tuple:
+                    new_clause=new_clause.union(premise_clause)
+
+                new_premise_clauses.add(new_clause)
+
+        return Rule(premise=new_premise_clauses, conclusion=self.get_conclusion())
+
+
+
+"""
+- write tests for merging on simple data
+
+- delete unsatisfiable rules
+- delete redundant rules
+
+- get both versions of the alg working and compare 
+    - have comparison metrics for the alg set up
+
+
+"""
