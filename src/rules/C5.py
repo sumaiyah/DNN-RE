@@ -3,7 +3,7 @@ import pandas as pd
 
 from rules.term import Term, Neuron
 from rules.helpers import parse_variable_str_to_dict
-from rules import Rule
+from rules.rule import Rule
 
 # Interface to R running embedded in a Python process
 from rpy2.robjects.packages import importr

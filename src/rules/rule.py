@@ -2,14 +2,14 @@
 Represent a total rule with a premise in Disjunctive Normal Form (DNF) and conclusion a class declaration
 """
 
+from rules.clause import ConjunctiveClause
 from rules.term import Term, Neuron
-# from rules.ruleset import Ruleset
-from typing import Set, Union
+from typing import Set, Union, Dict
+from rules import DELETE_UNSATISFIABLE_CLAUSES_FLAG, DELETE_REDUNDANT_CLAUSES_FLAG
 
 import itertools
 
 class Conclusion:
-    # todo does this even need to be hashable/immutble??
     """
     Represent rule conclusion. Immutable and Hashable.
     """
@@ -35,48 +35,21 @@ class Conclusion:
     def __hash__(self):
         return hash((self.class_name))
 
-class ConjunctiveClause:
-    """
-    Represent conjunctive clause. All terms in clause are ANDed together. Immutable and Hashable.
-    """
-    __slots__ = ['terms']
-
-    def __init__(self, terms: Set[Term] = None):
-        if terms is None:
-            terms = set()
-        self.terms = terms
-
-    def __str__(self):
-        terms_str = [str(term) for term in self.terms]
-        return '[' + ' AND '.join(terms_str) + ']'
-
-    def __eq__(self, other):
-        return (
-                self.__class__ == other.__class__ and
-                self.terms == other.terms
-        )
-
-    def __hash__(self):
-        x = hash(1)
-        for term in self.terms:
-            x = x ^ hash(term)
-        return x
-
-    def get_terms(self) -> Set[Term]:
-        return self.terms
-
-    def union(self, other) -> 'ConjunctiveClause':
-        # return new conjunctive clause that has all terms from both
-        terms = self.get_terms().union(other.get_terms())
-        return ConjunctiveClause(terms)
-
 class Rule:
     """
-    Represent rule in DNF form i.e. (t1 AND t2 AND ..) OR ( ...) OR ... -> t6 _
+    Represent rule in DNF form i.e. (t1 AND t2 AND ..) OR ( ...) OR ... -> t6 . Immutable and Hashable.
     """
+    __slots__ = ['premise', 'conclusion']
+
     def __init__(self, premise: Set[ConjunctiveClause], conclusion: Union[Term, Conclusion]):
-        self.premise = premise
-        self.conclusion = conclusion
+        if DELETE_UNSATISFIABLE_CLAUSES_FLAG:
+            premise = self.delete_unsatisfiable_clauses(clauses=premise)
+
+        if DELETE_REDUNDANT_CLAUSES_FLAG:
+            premise = self.delete_redundant_clauses(clauses=premise)
+
+        super(Rule, self).__setattr__('premise', premise)
+        super(Rule, self).__setattr__('conclusion', conclusion)
 
     def get_premise(self) -> Set[ConjunctiveClause]:
         return self.premise
@@ -94,16 +67,25 @@ class Rule:
     def __hash__(self):
         return hash((self.conclusion))
 
+    def __setattr__(self, name, value):
+        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
+                                            name)
+        raise AttributeError(msg)
+
     def get_terms_from_rule_premise(self) -> Set[Term]:
-        # return terms from all premises with no duplicates
+        # Return terms from all clauses in rule premise with no duplicates
         terms = set()
         for clause in self.premise:
             terms = terms.union(clause.get_terms())
         return terms
 
     def __str__(self):
-        premise_str = [str(clause) for clause in self.get_premise()]
-        return "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.get_conclusion())
+        # premise_str = [(str(clause) + '\n') for clause in self.get_premise()]
+        premise_str = [(str(clause)) for clause in self.get_premise()]
+        rule_str = "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.get_conclusion()) + '\n'
+        n_clauses = len(self.premise)
+        rule_str += ('Number of clauses: ' + str(n_clauses))
+        return rule_str
 
     @classmethod
     def from_term_set(cls, premise: Set[Term], conclusion: Union[Conclusion, Term]):
@@ -115,6 +97,7 @@ class Rule:
 
     @classmethod
     def initial_rule(cls, output_layer, neuron_index, class_name, threshold):
+        # Return initial rule given parameters
         rule_premise = ConjunctiveClause(terms={Term(Neuron(layer=output_layer, index=neuron_index), '>', threshold)})
         rule_conclusion = Conclusion(class_name)
 
@@ -134,29 +117,57 @@ class Rule:
             for old_premise_term in old_premise_clause.get_terms():
                 conj_new_premise_clauses.append(intermediate_rules.get_rule_premises_by_conclusion(old_premise_term))
 
-            # When combined into a cartesian product, get all possible concjunctive clauses for merged rule
+            # When combined into a cartesian product, get all possible conjunctive clauses for merged rule
             conj_new_premise_clauses_combinations = itertools.product(*tuple(conj_new_premise_clauses))
 
             # given tuples of ConjunctiveClauses
             for premise_clause_tuple in conj_new_premise_clauses_combinations:
                 new_clause = ConjunctiveClause()
                 for premise_clause in premise_clause_tuple:
-                    new_clause=new_clause.union(premise_clause)
+                    new_clause = new_clause.union(premise_clause)
 
                 new_premise_clauses.add(new_clause)
 
         return Rule(premise=new_premise_clauses, conclusion=self.get_conclusion())
 
+    def delete_unsatisfiable_clauses(self, clauses: Set[ConjunctiveClause]) -> Set[ConjunctiveClause]:
+        """
+        Remove unsatisfiable clauses in a rule
+        """
+        satisfiable_clauses = set()
+        for clause in clauses:
+            if clause.is_satisfiable():
+                satisfiable_clauses.add(clause)
 
+        return satisfiable_clauses
 
-"""
-- write tests for merging on simple data
+    def delete_redundant_clauses(self, clauses: Set[ConjunctiveClause]) -> Set[ConjunctiveClause]:
+        """
+        TODO FILL THIS IN!!
+        Remove redundant clauses in a rule
 
-- delete unsatisfiable rules
-- delete redundant rules
+        A clause c1 is strictly weaker than another clause c2 in the rule
+            - if it includes terms for all dimensions delimited by r2
+            - the restrictions are at least as specific as those of r2 (r2 is more specifc i.e. less general)
+        """
+        return clauses
 
-- get both versions of the alg working and compare 
-    - have comparison metrics for the alg set up
+    def evaluate(self, data: Dict[Neuron, float]) -> bool: #todo replace data with dataframe
+        """
+        Given a list of input neurons and their values, return whether this rule applied to the data can be satisfied
+        """
+        # If at least 1 clause is satisfied
+        for clause in self.premise:
+            if (clause.evaluate(data)):
+                return True
 
+        # Could not satisfy any of the clauses
+        return False
 
-"""
+# c = ConjunctiveClause({Term(Neuron(0,1),'>', 0.5), Term(Neuron(0,2),'>', 0.5),})
+# r = Rule({c}, Conclusion('hi'))
+# for x in r.premise:
+#     x.terms = {}
+# print(r)
+# data = {Neuron(0,1): 0.74, Neuron(0,2): 0.5}
+# print(r.apply(data))

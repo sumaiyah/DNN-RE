@@ -5,11 +5,11 @@ Represent a ruleset made up of rules
 from typing import Set, Dict
 
 from rules.term import Term
-from rules.rule import ConjunctiveClause
-from rules import Rule
+from rules.clause import ConjunctiveClause
+from rules.rule import Rule
 
 def add_rules_to_dict(rules: Set[Rule], rule_conc_to_premises: Dict):
-    # Adds rules to dictionary that mapping conclusions to sets of ConjunctiveClauses
+    # Adds rules to dictionary that mapping each conclusions to a set of ConjunctiveClauses
     for rule in rules:
         if rule.get_conclusion() in rule_conc_to_premises:
             rule_conc_to_premises[rule.get_conclusion()] = \
@@ -28,7 +28,7 @@ class Ruleset:
         self.rules = rules
 
     @classmethod
-    def from_set(cls, rules: Set[Rule] = None):
+    def from_set(cls, rules: Set[Rule] = None) -> 'Ruleset':
         """
         Initialise from a set of rules, convert into a dictionary mapping conclusions to sets of ConjunctiveClauses
         """
@@ -47,9 +47,8 @@ class Ruleset:
         return self.rules[conclusion] if conclusion in self.rules else set()
 
     def add_rules(self, rules: Set[Rule]):
-        # todo change to union later?
         """
-        Return new ruleset with containing rules from both
+        Add rules to the ruleset dictionary of rules
         """
         add_rules_to_dict(rules, rule_conc_to_premises=self.rules)
 
@@ -57,6 +56,7 @@ class Ruleset:
         """
         Return all the terms present in the bodies of all the rules in the ruleset
         """
+
         # Values values in rules dictionary are all the sets of conjunctive clauses
         terms = set()
         for conjunctive_clause_set in self.rules.values():

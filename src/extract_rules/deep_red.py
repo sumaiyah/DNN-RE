@@ -1,9 +1,10 @@
-from model.model import Model
-from rules import Rule
+from rules.rule import Rule
 from rules.ruleset import Ruleset
 from rules.C5 import C5
 
-def extract_rules(model: Model):
+def extract_rules(model):
+    class_rules = {}
+
     for output_class in model.class_encodings:
         layer_rulesets = [Ruleset() for _ in range(0, model.n_layers)] # todo should this be model.n_layers?? probs
 
@@ -34,4 +35,6 @@ def extract_rules(model: Model):
         for hidden_layer in reversed(range(0, output_layer)):
             output_rule = output_rule.merge(layer_rulesets[hidden_layer])
 
-        return output_rule
+        class_rules[output_class] = output_rule
+
+    return class_rules

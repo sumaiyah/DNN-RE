@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from rules.rule import Rule, ConjunctiveClause
+from rules.rule import Rule
+from rules.clause import ConjunctiveClause
 from rules.term import Term, Neuron
 from rules.ruleset import Ruleset
 

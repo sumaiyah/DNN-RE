@@ -1,11 +1,11 @@
-from model.model import Model
 from rules.C5 import C5
 from rules.ruleset import Ruleset
+from rules.rule import Rule
 
-from rules import Rule
 
+def extract_rules(model):
+    class_rules = {}
 
-def extract_rules(model: Model):
     for output_class in model.class_encodings:
         # Initial rule
         total_rule = Rule.initial_rule(output_layer=model.n_layers - 1,
@@ -21,16 +21,16 @@ def extract_rules(model: Model):
             terms = total_rule.get_terms_from_rule_premise()
             for term in terms:
                 target = term.apply(model.get_layer_activations_of_neuron(layer_index=hidden_layer + 1,
-                                                                          neuron_index=term.get_neuron_index()))
+                                                                             neuron_index=term.get_neuron_index()))
 
                 rule_conclusion_map = {True: term, False: term.negate()}
                 intermediate_rules.add_rules(C5(x=predictors, y=target, rule_conclusion_map=rule_conclusion_map))
 
             total_rule = total_rule.merge(intermediate_rules)
-            # TODO  delete unsat rules
-            # TODO  delete redundant rules
 
-        return total_rule
+        class_rules[output_class] = total_rule
+
+    return class_rules
 
 
 

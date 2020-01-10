@@ -3,6 +3,7 @@ Represent components that make up a rule. All immutable and hashable.
 """
 
 from enum import Enum
+from typing import List
 
 class TermOperator(Enum):
     GreaterThan = '>'
@@ -12,17 +13,26 @@ class TermOperator(Enum):
         return self.value
 
     def negate(self):
-        if self.GreaterThan:
+        # Negate term
+        if self is self.GreaterThan:
             return self.LessThanEq
-        if self.LessThanEq:
+        if self is self.LessThanEq:
             return self.GreaterThan
 
     def eval(self):
+        # Return evaluation operation for term operator
         import operator
-        if self.GreaterThan:
+        if self is self.GreaterThan:
             return operator.gt
-        if self.LessThanEq:
+        if self is self.LessThanEq:
             return operator.le
+
+    def most_general_value(self, values: List[float]):
+        # Given a list of values, return the most general depending on the operator
+        if self is self.LessThanEq:
+            return max(values)
+        if self is self.GreaterThan:
+            return min(values)
 
 class Neuron:
     """
@@ -95,7 +105,7 @@ class Term:
         """
         return Term(self.neuron, str(self.operator.negate()), self.threshold)
 
-    def apply(self, value):
+    def apply(self, value) -> bool:
         """
         Apply condition to a value
         """
@@ -107,6 +117,11 @@ class Term:
         """
         return self.neuron.get_index()
 
+    def get_neuron(self):
+        return Neuron(self.neuron.layer, self.neuron.index)
 
+    def get_operator(self):
+        return self.operator
 
-
+    def get_threshold(self):
+        return self.threshold
