@@ -105,7 +105,7 @@ class Term:
         """
         return Term(self.neuron, str(self.operator.negate()), self.threshold)
 
-    def apply(self, value) -> bool:
+    def apply(self, value):
         """
         Apply condition to a value
         """

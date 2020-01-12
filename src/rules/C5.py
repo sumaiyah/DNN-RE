@@ -16,7 +16,7 @@ pandas2ri.activate()
 C50 = importr('C50', lib_loc='C:/Users/sumaiyah/Documents/sumaiyah/R/win-library/3.5')
 C5_0 = robjects.r('C5.0')
 
-def _parse_C5_rule_str(rule_str, rule_conclusion_map) -> Set[Rule]:
+def _parse_C5_rule_str(rule_str, rule_conclusion_map, prior_rule_confidence) -> Set[Rule]:
     rules_set: Set[Rule] = set()
 
     rule_str_lines = rule_str.split('\n')
@@ -32,6 +32,11 @@ def _parse_C5_rule_str(rule_str, rule_conclusion_map) -> Set[Rule]:
         n_rule_terms = rule_data_variables['conds']
         rule_conclusion: Term = rule_conclusion_map[(rule_data_variables['class'])]
 
+        # C5 rule confidence=(number of training cases correctly classified + 1)/(total training cases covered  + 2)
+        rule_confidence = (rule_data_variables['ok']+1) / (rule_data_variables['cover']+2)
+        # Weight rule confidence by confidence of previous rule
+        rule_confidence = rule_confidence*prior_rule_confidence
+
         rule_terms: Set[Term] = set()
         for _ in range(0, n_rule_terms):
             line_index += 1
@@ -45,16 +50,21 @@ def _parse_C5_rule_str(rule_str, rule_conclusion_map) -> Set[Rule]:
 
             rule_terms.add(Term(neuron=term_neuron, operator=term_operator, threshold=term_operand))
 
-        rules_set.add(Rule.from_term_set(premise=rule_terms, conclusion=rule_conclusion))
+        rules_set.add(Rule.from_term_set(premise=rule_terms, conclusion=rule_conclusion, confidence=rule_confidence))
 
     return rules_set
 
-def C5(x: pd.DataFrame, y: pd.DataFrame, rule_conclusion_map) -> Set[Rule]:
+def C5(x: pd.DataFrame, y: pd.DataFrame, rule_conclusion_map, prior_rule_confidence) -> Set[Rule]:
     y = robjects.vectors.FactorVector(y)
 
-    C5_model = C50.C5_0(x=x, y=y, rules=True)
+    # Default = C5.0Control(subset = TRUE, bands = 0, winnow = FALSE,
+    # noGlobalPruning = FALSE, CF = 0.25, minCases = 2,
+    # fuzzyThreshold = FALSE, sample = 0, seed = sample.int(4096, size = 1) -
+    # 1L, earlyStopping = TRUE, label = "outcome")
+    # improvements shows by CF=1
+    C5_model = C50.C5_0(x=x, y=y, rules=True, control=C50.C5_0Control(noGlobalPruning=True))
 
     C5_rules_str = C5_model.rx2('rules')[0]
-    C5_rules = _parse_C5_rule_str(C5_rules_str, rule_conclusion_map)
+    C5_rules = _parse_C5_rule_str(C5_rules_str, rule_conclusion_map, prior_rule_confidence)
 
     return C5_rules

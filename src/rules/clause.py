@@ -7,9 +7,9 @@ class ConjunctiveClause:
     """
     Represent conjunctive clause. All terms in clause are ANDed together. Immutable and Hashable.
     """
-    __slots__ = ['terms']
+    __slots__ = ['terms', 'confidence']
 
-    def __init__(self, terms: Set[Term] = None):
+    def __init__(self, terms: Set[Term] = None, confidence=1):
         if terms is None:
             terms = set()
 
@@ -17,10 +17,11 @@ class ConjunctiveClause:
             terms = self.__get_necessary_terms(terms)
 
         super(ConjunctiveClause, self).__setattr__('terms', terms)
+        super(ConjunctiveClause, self).__setattr__('confidence', confidence)
 
     def __str__(self):
         terms_str = [str(term) for term in self.terms]
-        return '[' + ' AND '.join(terms_str) + ']'
+        return str(self.confidence)+'[' + ' AND '.join(terms_str) + ']'
 
     def __setattr__(self, name, value):
         msg = "'%s' is immutable, can't modify %s" % (self.__class__,
@@ -42,10 +43,15 @@ class ConjunctiveClause:
     def get_terms(self) -> Set[Term]:
         return self.terms
 
+    def get_confidence(self) -> float:
+        return self.confidence
+
     def union(self, other) -> 'ConjunctiveClause':
         # Return new conjunctive clause that has all terms from both
         terms = self.get_terms().union(other.get_terms())
-        return ConjunctiveClause(terms)
+        confidence = self.get_confidence() * other.get_confidence()
+
+        return ConjunctiveClause(terms=terms, confidence=confidence)
 
     def __get_necessary_terms(self, terms) -> Set[Term]:
         """
@@ -74,7 +80,7 @@ class ConjunctiveClause:
             max_value = neuron_conditions[neuron][TermOperator.LessThanEq]
 
             if min_value and max_value:
-                if min_value > max_value:
+                if min_value >= max_value:
                     return False
 
         return True

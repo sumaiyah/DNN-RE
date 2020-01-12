@@ -72,33 +72,34 @@ class Rule:
                                             name)
         raise AttributeError(msg)
 
-    def get_terms_from_rule_premise(self) -> Set[Term]:
-        # Return terms from all clauses in rule premise with no duplicates
-        terms = set()
-        for clause in self.premise:
-            terms = terms.union(clause.get_terms())
-        return terms
+    # def get_terms_from_rule_premise(self) -> Set[Term]:
+    #     # Return terms from all clauses in rule premise with no duplicates
+    #     terms = set()
+    #     for clause in self.premise:
+    #         terms = terms.union(clause.get_terms())
+    #     return terms
 
     def __str__(self):
         # premise_str = [(str(clause) + '\n') for clause in self.get_premise()]
         premise_str = [(str(clause)) for clause in self.get_premise()]
-        rule_str = "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.get_conclusion()) + '\n'
+        rule_str = "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.get_conclusion())
         n_clauses = len(self.premise)
-        rule_str += ('Number of clauses: ' + str(n_clauses))
+        rule_str += ('\n' + 'Number of clauses: ' + str(n_clauses))
         return rule_str
 
     @classmethod
-    def from_term_set(cls, premise: Set[Term], conclusion: Union[Conclusion, Term]):
+    def from_term_set(cls, premise: Set[Term], conclusion: Union[Conclusion, Term], confidence: float):
         """
         Initialise Rule given a single clause as a set of terms
         """
-        rule_premise = {ConjunctiveClause(terms=premise)}
+        rule_premise = {ConjunctiveClause(terms=premise, confidence=confidence)}
         return cls(premise=rule_premise, conclusion=conclusion)
 
     @classmethod
     def initial_rule(cls, output_layer, neuron_index, class_name, threshold):
         # Return initial rule given parameters
-        rule_premise = ConjunctiveClause(terms={Term(Neuron(layer=output_layer, index=neuron_index), '>', threshold)})
+        rule_premise = ConjunctiveClause(terms={Term(Neuron(layer=output_layer, index=neuron_index), '>', threshold)},
+                                         confidence=1)
         rule_conclusion = Conclusion(class_name)
 
         return cls(premise={rule_premise}, conclusion=rule_conclusion)
@@ -152,17 +153,16 @@ class Rule:
         """
         return clauses
 
-    def evaluate(self, data: Dict[Neuron, float]) -> bool: #todo replace data with dataframe
+    def evaluate(self, data: Dict[Neuron, float]) -> float:
         """
-        Given a list of input neurons and their values, return whether this rule applied to the data can be satisfied
+        Given a list of input neurons and their values, return proportion of clauses that satisfy the rule
         """
-        # If at least 1 clause is satisfied
+        confidence = 0
         for clause in self.premise:
             if (clause.evaluate(data)):
-                return True
+                confidence += clause.get_confidence()
 
-        # Could not satisfy any of the clauses
-        return False
+        return confidence
 
 # c = ConjunctiveClause({Term(Neuron(0,1),'>', 0.5), Term(Neuron(0,2),'>', 0.5),})
 # r = Rule({c}, Conclusion('hi'))

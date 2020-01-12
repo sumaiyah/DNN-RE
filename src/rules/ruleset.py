@@ -52,19 +52,31 @@ class Ruleset:
         """
         add_rules_to_dict(rules, rule_conc_to_premises=self.rules)
 
-    def get_terms_from_rule_premises(self) -> Set[Term]:
+    # def get_terms_from_rule_premises(self) -> Set[Term]:
+    def get_terms_from_rule_premises(self) -> Dict:
         """
         Return all the terms present in the bodies of all the rules in the ruleset
         """
 
-        # Values values in rules dictionary are all the sets of conjunctive clauses
-        terms = set()
+        # Values in rules dictionary are all the sets of conjunctive clauses
+        # terms = set()
+        # for conjunctive_clause_set in self.rules.values():
+        #     for clause in conjunctive_clause_set:
+        #         terms = terms.union(clause.get_terms())
+        # return terms
+
+        # Get terms and MAX clause confidence for each term
+        term_confidences = {}
         for conjunctive_clause_set in self.rules.values():
             for clause in conjunctive_clause_set:
-                terms = terms.union(clause.get_terms())
-        return terms
+                for term in clause.get_terms():
+                    if term in term_confidences:
+                        term_confidences[term] = max(clause.get_confidence(), term_confidences[term])
+                    else:
+                        term_confidences[term] = clause.get_confidence()
+        return term_confidences
 
-    def print_dnf(self):
+    def rule_dnf_str(self):
         # print rules in DNF form
         ruleset_str = '\n'
 
@@ -74,10 +86,10 @@ class Ruleset:
         ruleset_str += '\n'
         return ruleset_str
 
-    def print_all(self):
-        # prints all rules seperately. Each rule is conjunction of terms
+    def rules_all_simple_str(self):
+        # prints all rules separately. Each rule premise is conjunction of terms
 
-        # GET RULEs
+        # Get all rules individually
         rules = set()
         for rule_conc in self.rules.keys():
             for clause in self.rules[rule_conc]:
