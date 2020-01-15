@@ -145,5 +145,3 @@ class TestRule(TestCase):
         merged_rule = self.base_rule_2_clause_1_term.merge(self.ruleset_mixed_clause_size)
         self.assertEqual(expected_rule, merged_rule)
 
-        # todo a rule with i term or 2 terms anded together?
-

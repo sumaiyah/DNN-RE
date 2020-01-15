@@ -1,13 +1,13 @@
 """
-Represent a total rule with a premise in Disjunctive Normal Form (DNF) and conclusion a class declaration
+Represent a rule with a premise in Disjunctive Normal Form (DNF) and conclusion of another term or class conclusion
 """
 
 from rules.clause import ConjunctiveClause
 from rules.term import Term, Neuron
 from typing import Set, Union, Dict
-from rules import DELETE_UNSATISFIABLE_CLAUSES_FLAG, DELETE_REDUNDANT_CLAUSES_FLAG
+from rules import DELETE_UNSATISFIABLE_CLAUSES_FLAG
 
-import itertools
+from logic_manipulator.satisfiability import remove_unsatisfiable_clauses
 
 class Conclusion:
     """
@@ -28,8 +28,7 @@ class Conclusion:
         )
 
     def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
-                                            name)
+        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
         raise AttributeError(msg)
 
     def __hash__(self):
@@ -43,10 +42,10 @@ class Rule:
 
     def __init__(self, premise: Set[ConjunctiveClause], conclusion: Union[Term, Conclusion]):
         if DELETE_UNSATISFIABLE_CLAUSES_FLAG:
-            premise = self.delete_unsatisfiable_clauses(clauses=premise)
+            premise = remove_unsatisfiable_clauses(clauses=premise)
 
-        if DELETE_REDUNDANT_CLAUSES_FLAG:
-            premise = self.delete_redundant_clauses(clauses=premise)
+        # if DELETE_REDUNDANT_CLAUSES_FLAG:
+        #     premise = self.delete_redundant_clauses(clauses=premise)
 
         super(Rule, self).__setattr__('premise', premise)
         super(Rule, self).__setattr__('conclusion', conclusion)
@@ -68,106 +67,69 @@ class Rule:
         return hash((self.conclusion))
 
     def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
-                                            name)
+        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
         raise AttributeError(msg)
-
-    # def get_terms_from_rule_premise(self) -> Set[Term]:
-    #     # Return terms from all clauses in rule premise with no duplicates
-    #     terms = set()
-    #     for clause in self.premise:
-    #         terms = terms.union(clause.get_terms())
-    #     return terms
 
     def __str__(self):
         # premise_str = [(str(clause) + '\n') for clause in self.get_premise()]
         premise_str = [(str(clause)) for clause in self.get_premise()]
         rule_str = "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.get_conclusion())
         n_clauses = len(self.premise)
+
         rule_str += ('\n' + 'Number of clauses: ' + str(n_clauses))
         return rule_str
+
+    def evaluate(self, data: Dict[Neuron, float]) -> float:
+        """
+        Given a list of input neurons and their values, return proportion of clauses that satisfy the rule
+        """
+        # todo sort out how to evaluate a rule!
+        confidence = 0
+        # total = 0
+        for clause in self.premise:
+            if (clause.evaluate(data)):
+                confidence += clause.get_confidence()
+                # confidence += 1
+            # total += 1
+
+        # return confidence/total
+        return confidence
 
     @classmethod
     def from_term_set(cls, premise: Set[Term], conclusion: Union[Conclusion, Term], confidence: float):
         """
-        Initialise Rule given a single clause as a set of terms
+        Construct Rule given a single clause as a set of terms
         """
         rule_premise = {ConjunctiveClause(terms=premise, confidence=confidence)}
         return cls(premise=rule_premise, conclusion=conclusion)
 
     @classmethod
     def initial_rule(cls, output_layer, neuron_index, class_name, threshold):
-        # Return initial rule given parameters
+        """
+        Construct Initial Rule given parameters with default confidence value of 1
+        """
         rule_premise = ConjunctiveClause(terms={Term(Neuron(layer=output_layer, index=neuron_index), '>', threshold)},
                                          confidence=1)
         rule_conclusion = Conclusion(class_name)
 
         return cls(premise={rule_premise}, conclusion=rule_conclusion)
 
-    def merge(self, intermediate_rules: 'Ruleset') -> 'Rule':
+    def get_terms_with_conf_from_rule_premises(self) -> Dict[Term, float]:
         """
-        Merge the total rule with the set of intermediate rules from the previous layer
+        Return all the terms present in the bodies of all the rules in the ruleset with their max confidence
         """
-        new_premise_clauses = set()
+        term_confidences = {}
 
-        # for each clause in the total rule
-        for old_premise_clause in self.get_premise():
+        for clause in self.get_premise():
+            clause_confidence = clause.get_confidence()
+            for term in clause.get_terms():
+                if term in term_confidences:
+                    term_confidences[term] = max(term_confidences[term], clause_confidence)
+                else:
+                    term_confidences[term] = clause_confidence
 
-            # list of sets of conjunctive clauses that are all conjunctive
-            conj_new_premise_clauses = []
-            for old_premise_term in old_premise_clause.get_terms():
-                conj_new_premise_clauses.append(intermediate_rules.get_rule_premises_by_conclusion(old_premise_term))
+        return term_confidences
 
-            # When combined into a cartesian product, get all possible conjunctive clauses for merged rule
-            conj_new_premise_clauses_combinations = itertools.product(*tuple(conj_new_premise_clauses))
 
-            # given tuples of ConjunctiveClauses
-            for premise_clause_tuple in conj_new_premise_clauses_combinations:
-                new_clause = ConjunctiveClause()
-                for premise_clause in premise_clause_tuple:
-                    new_clause = new_clause.union(premise_clause)
 
-                new_premise_clauses.add(new_clause)
 
-        return Rule(premise=new_premise_clauses, conclusion=self.get_conclusion())
-
-    def delete_unsatisfiable_clauses(self, clauses: Set[ConjunctiveClause]) -> Set[ConjunctiveClause]:
-        """
-        Remove unsatisfiable clauses in a rule
-        """
-        satisfiable_clauses = set()
-        for clause in clauses:
-            if clause.is_satisfiable():
-                satisfiable_clauses.add(clause)
-
-        return satisfiable_clauses
-
-    def delete_redundant_clauses(self, clauses: Set[ConjunctiveClause]) -> Set[ConjunctiveClause]:
-        """
-        TODO FILL THIS IN!!
-        Remove redundant clauses in a rule
-
-        A clause c1 is strictly weaker than another clause c2 in the rule
-            - if it includes terms for all dimensions delimited by r2
-            - the restrictions are at least as specific as those of r2 (r2 is more specifc i.e. less general)
-        """
-        return clauses
-
-    def evaluate(self, data: Dict[Neuron, float]) -> float:
-        """
-        Given a list of input neurons and their values, return proportion of clauses that satisfy the rule
-        """
-        confidence = 0
-        for clause in self.premise:
-            if (clause.evaluate(data)):
-                confidence += clause.get_confidence()
-
-        return confidence
-
-# c = ConjunctiveClause({Term(Neuron(0,1),'>', 0.5), Term(Neuron(0,2),'>', 0.5),})
-# r = Rule({c}, Conclusion('hi'))
-# for x in r.premise:
-#     x.terms = {}
-# print(r)
-# data = {Neuron(0,1): 0.74, Neuron(0,2): 0.5}
-# print(r.apply(data))

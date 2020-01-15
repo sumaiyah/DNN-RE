@@ -29,10 +29,10 @@ class TermOperator(Enum):
 
     def most_general_value(self, values: List[float]):
         # Given a list of values, return the most general depending on the operator
-        if self is self.LessThanEq:
-            return max(values)
         if self is self.GreaterThan:
             return min(values)
+        if self is self.LessThanEq:
+            return max(values)
 
 class Neuron:
     """
@@ -49,8 +49,7 @@ class Neuron:
         return 'h_' + str(self.layer) + ',' + str(self.index)
 
     def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
-                                            name)
+        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
         raise AttributeError(msg)
 
     def __eq__(self, other):
@@ -84,8 +83,7 @@ class Term:
         return '(' + str(self.neuron) + ' ' + str(self.operator) + ' ' + str(self.threshold) + ')'
 
     def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__,
-                                            name)
+        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
         raise AttributeError(msg)
 
     def __eq__(self, other):

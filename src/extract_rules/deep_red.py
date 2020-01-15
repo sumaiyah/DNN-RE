@@ -2,11 +2,13 @@ from rules.rule import Rule
 from rules.ruleset import Ruleset
 from rules.C5 import C5
 
+from logic_manipulator.substitute_rules import substitute
+
 def extract_rules(model):
-    class_dnf_formula = {}
+    class_rules = {}
 
     for output_class in model.class_encodings:
-        layer_rulesets = [Ruleset() for _ in range(0, model.n_layers)] # todo should this be model.n_layers?? probs
+        layer_rulesets = [Ruleset() for _ in range(0, model.n_layers)]
 
         initial_rule = Rule.initial_rule(output_layer=model.n_layers - 1,
                                         neuron_index=output_class.index,
@@ -20,26 +22,25 @@ def extract_rules(model):
         for hidden_layer in reversed(range(0, output_layer)):
             predictors = model.get_layer_activations(layer_index=hidden_layer)
 
-            terms_confidences = layer_rulesets[hidden_layer+1].get_terms_from_rule_premises()
-            terms = terms_confidences.keys()
+
+            term_confidences = layer_rulesets[hidden_layer+1].get_terms_with_conf_from_rule_premises()
+            terms = term_confidences.keys()
 
             for term in terms:
                 target = term.apply(model.get_layer_activations_of_neuron(layer_index=hidden_layer + 1,
                                                                           neuron_index=term.get_neuron_index()))
 
-                prior_rule_confidence = terms_confidences[term]
+                prior_rule_confidence = term_confidences[term]
                 rule_conclusion_map = {True: term, False: term.negate()}
                 layer_rulesets[hidden_layer].add_rules(C5(x=predictors, y=target,
                                                           rule_conclusion_map=rule_conclusion_map,
                                                           prior_rule_confidence=prior_rule_confidence))
 
-                # print(layer_rulesets[hidden_layer].rule_dnf_str())
-
-        # Merge layerwise rules
+        # Merge layer-wise rules
         output_rule = initial_rule
         for hidden_layer in reversed(range(0, output_layer)):
-            output_rule = output_rule.merge(layer_rulesets[hidden_layer])
+            output_rule = substitute(total_rule=output_rule, intermediate_rules=layer_rulesets[hidden_layer])
 
-        class_dnf_formula[output_class] = output_rule
+        class_rules[output_class] = output_rule
 
-    return class_dnf_formula
+    return class_rules

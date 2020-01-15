@@ -2,6 +2,7 @@ from rules.C5 import C5
 from rules.ruleset import Ruleset
 from rules.rule import Rule
 
+from logic_manipulator.substitute_rules import substitute
 
 def extract_rules(model):
     class_rules = {}
@@ -13,20 +14,27 @@ def extract_rules(model):
                                         class_name=output_class.name,
                                         threshold=0.5)
 
-        for hidden_layer in reversed(range(0, model.n_layers - 1)):
+        output_layer = model.n_layers - 1
+
+        for hidden_layer in reversed(range(0, output_layer)):
             intermediate_rules = Ruleset()
 
             predictors = model.get_layer_activations(layer_index=hidden_layer)
 
-            terms = total_rule.get_terms_from_rule_premise()
+            term_confidences = total_rule.get_terms_with_conf_from_rule_premises()
+            terms = term_confidences.keys()
+
             for term in terms:
                 target = term.apply(model.get_layer_activations_of_neuron(layer_index=hidden_layer + 1,
-                                                                             neuron_index=term.get_neuron_index()))
+                                                                          neuron_index=term.get_neuron_index()))
 
+                prior_rule_confidence = term_confidences[term]
                 rule_conclusion_map = {True: term, False: term.negate()}
-                intermediate_rules.add_rules(C5(x=predictors, y=target, rule_conclusion_map=rule_conclusion_map))
+                intermediate_rules.add_rules(C5(x=predictors, y=target,
+                                                          rule_conclusion_map=rule_conclusion_map,
+                                                          prior_rule_confidence=prior_rule_confidence))
 
-            total_rule = total_rule.merge(intermediate_rules)
+            total_rule = substitute(total_rule=total_rule, intermediate_rules=intermediate_rules)
 
         class_rules[output_class] = total_rule
 

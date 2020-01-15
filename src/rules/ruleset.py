@@ -8,100 +8,69 @@ from rules.term import Term
 from rules.clause import ConjunctiveClause
 from rules.rule import Rule
 
-def add_rules_to_dict(rules: Set[Rule], rule_conc_to_premises: Dict):
-    # Adds rules to dictionary that mapping each conclusions to a set of ConjunctiveClauses
-    for rule in rules:
-        if rule.get_conclusion() in rule_conc_to_premises:
-            rule_conc_to_premises[rule.get_conclusion()] = \
-                rule_conc_to_premises[rule.get_conclusion()].union(rule.get_premise())
-        else:
-            rule_conc_to_premises[rule.get_conclusion()] = rule.get_premise()
 
 class Ruleset:
     """
     Represents a set of disjunctive rules
     """
-    def __init__(self, rules: Dict = None):
-        if rules is None:
-            rules = {}
-
-        self.rules = rules
-
-    @classmethod
-    def from_set(cls, rules: Set[Rule] = None) -> 'Ruleset':
-        """
-        Initialise from a set of rules, convert into a dictionary mapping conclusions to sets of ConjunctiveClauses
-        """
+    def __init__(self, rules: Set[Rule] = None):
         if rules is None:
             rules = set()
 
-        rules_dict = {}
-        add_rules_to_dict(rules=rules, rule_conc_to_premises=rules_dict)
+        self.rules = rules
 
-        return cls(rules=rules_dict)
+    def add_rules(self, rules: Set[Rule]):
+        self.rules = self.rules.union(rules)
 
     def get_rule_premises_by_conclusion(self, conclusion) -> Set[ConjunctiveClause]:
         """
         Return a set of conjunctive clauses that all imply a given conclusion
         """
-        return self.rules[conclusion] if conclusion in self.rules else set()
+        premises = set()
+        for rule in self.rules:
+            if conclusion==rule.get_conclusion():
+                premises = premises.union(rule.get_premise())
 
-    def add_rules(self, rules: Set[Rule]):
-        """
-        Add rules to the ruleset dictionary of rules
-        """
-        add_rules_to_dict(rules, rule_conc_to_premises=self.rules)
+        return premises
 
-    # def get_terms_from_rule_premises(self) -> Set[Term]:
-    def get_terms_from_rule_premises(self) -> Dict:
+    def get_terms_with_conf_from_rule_premises(self) -> Dict[Term, float]:
+        """
+        Return all the terms present in the bodies of all the rules in the ruleset with their max confidence
+        """
+        term_confidences = {}
+
+        for rule in self.rules:
+            for clause in rule.get_premise():
+                clause_confidence = clause.get_confidence()
+                for term in clause.get_terms():
+                    if term in term_confidences:
+                        term_confidences[term] = max(term_confidences[term], clause_confidence)
+                    else:
+                        term_confidences[term] = clause_confidence
+
+        return term_confidences
+
+    def get_terms_from_rule_premises(self) -> Set[Term]:
+        # todo, do something with the rule confidence value!
         """
         Return all the terms present in the bodies of all the rules in the ruleset
         """
+        terms = set()
+        for rule in self.rules:
+            for clause in rule.get_premise():
+                terms = terms.union(clause.get_terms())
+        return terms
 
-        # Values in rules dictionary are all the sets of conjunctive clauses
-        # terms = set()
-        # for conjunctive_clause_set in self.rules.values():
-        #     for clause in conjunctive_clause_set:
-        #         terms = terms.union(clause.get_terms())
-        # return terms
+    # TODO? is this helpful? def get_rules_as_dnf
 
-        # Get terms and MAX clause confidence for each term
-        term_confidences = {}
-        for conjunctive_clause_set in self.rules.values():
-            for clause in conjunctive_clause_set:
-                for term in clause.get_terms():
-                    if term in term_confidences:
-                        term_confidences[term] = max(clause.get_confidence(), term_confidences[term])
-                    else:
-                        term_confidences[term] = clause.get_confidence()
-        return term_confidences
-
-    def rule_dnf_str(self):
-        # print rules in DNF form
+    def __str__(self):
         ruleset_str = '\n'
-
-        for rule_conc in self.rules.keys():
-            ruleset_str += str(Rule(premise=self.rules[rule_conc], conclusion=rule_conc)) + '\n'
-
-        ruleset_str += '\n'
-        return ruleset_str
-
-    def rules_all_simple_str(self):
-        # prints all rules separately. Each rule premise is conjunction of terms
-
-        # Get all rules individually
-        rules = set()
-        for rule_conc in self.rules.keys():
-            for clause in self.rules[rule_conc]:
-                rules.add(Rule(premise={clause}, conclusion=rule_conc))
-
-        # print str
-        ruleset_str = '\n'
-        for rule in rules:
+        for rule in self.rules:
             ruleset_str += str(rule) + '\n'
 
-        ruleset_str += '\n'
         return ruleset_str
+
+
 
 
 

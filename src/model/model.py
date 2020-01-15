@@ -18,7 +18,7 @@ class Model:
         self.test_data_path = test_data_path
         self.class_encodings = class_encodings
 
-        self.output_class_to_dnf_formula = {} # DNF rule for each output class
+        self.output_class_to_rules = {} # DNF rule for each output class
         self.n_layers = len(self.model.layers)
 
         if recompute_layer_activations:
@@ -28,7 +28,7 @@ class Model:
         """
         Store sampled activations for each layer in CSV files
         """
-        # todo make this work for func and non func models
+        # todo make this work for func and non func keras models
 
         data_x = pd.read_csv(data_path, usecols=(lambda column: column not in ['target']))
 
@@ -56,11 +56,11 @@ class Model:
         filename = self.activations_path + str(layer_index) + '.csv'
         return pd.read_csv(filename)['h_' + str(layer_index) + '_' + str(neuron_index)]
 
-    def set_output_class_to_dnf(self, rules):
-        self.output_class_to_dnf_formula = rules
+    def set_rules(self, rules):
+        self.output_class_to_rules = rules
 
     def print_rules(self):
-        for output_class in self.output_class_to_dnf_formula.keys():
+        for output_class in self.output_class_to_rules.keys():
             print('CLASS: ', output_class.name)
-            print(self.output_class_to_dnf_formula[output_class])
+            print(self.output_class_to_rules[output_class])
             print()
