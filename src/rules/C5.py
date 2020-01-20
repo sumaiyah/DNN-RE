@@ -65,7 +65,7 @@ def C5(x: pd.DataFrame, y: pd.DataFrame, rule_conclusion_map, prior_rule_confide
     # noGlobalPruning = FALSE, CF = 0.25, minCases = 2,
     # fuzzyThreshold = FALSE, sample = 0, seed = sample.int(4096, size = 1) -
     # 1L, earlyStopping = TRUE, label = "outcome")
-    C5_model = C50.C5_0(x=x, y=y, rules=True, control=C50.C5_0Control(winnow=True, noGlobalPruning=False))
+    C5_model = C50.C5_0(x=x, y=y, rules=True, control=C50.C5_0Control(winnow=True))
 
     C5_rules_str = C5_model.rx2('rules')[0]
 

@@ -8,16 +8,19 @@ from collections import namedtuple
 
 ClassEncoding = namedtuple('ClassEncoding', 'name index')  # model output classes
 
-# base_path = 'data/MB/'    # for gene data use train/test.csv
-base_path = 'data/XOR/'     # for XOR data use all_data.csv
+base_path = 'data/MB/'    # for gene data use train/test.csv
+# base_path = 'data/XOR/'     # for XOR data use all_data.csv
+# base_path = 'data/UCIBreastCancer/' # UCI breast cancer dataset
+# base_path = 'data/MNIST/'     # MNIST Handwritten dataset
+# base_path = 'data/LetterRecognition/' # Letter Recognition Dataset
 
 params = dict(
     class_encodings=(ClassEncoding(name='Zero', index=0), ClassEncoding(name='One', index=1)),
     activations_path=base_path,
-    # train_data_path = base_path+'train_data.csv',
-    # test_data_path = base_path+'test_data.csv',
-    train_data_path=base_path + 'all_data.csv',
-    test_data_path=base_path + 'all_data.csv',
+    train_data_path = base_path+'train_data.csv',
+    test_data_path = base_path+'test_data.csv',
+    # train_data_path=base_path + 'all_data.csv',
+    # test_data_path=base_path + 'all_data.csv',
     model_path=base_path + 'model.h5',
     recompute_layer_activations=True
 )

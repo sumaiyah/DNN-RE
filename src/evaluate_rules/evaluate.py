@@ -32,6 +32,7 @@ def predict_test_instance(neuron_values, rules):
         return np.random.randint(2)
 
 def accuracy(model: Model):
+    print('Calculating Accuracy...', end=' ', flush=True)
     data_path = model.train_data_path
 
     x = pd.read_csv(data_path, usecols=(lambda column: column not in ['target']))

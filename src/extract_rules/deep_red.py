@@ -20,13 +20,18 @@ def extract_rules(model):
 
         # Extract layer-wise rules
         for hidden_layer in reversed(range(0, output_layer)):
+            print('Extracting layer %d rules:' % hidden_layer)
             predictors = model.get_layer_activations(layer_index=hidden_layer)
-
 
             term_confidences = layer_rulesets[hidden_layer+1].get_terms_with_conf_from_rule_premises()
             terms = term_confidences.keys()
 
+            for _ in terms:
+                print('.', end='', flush=True)
+            print()
+
             for term in terms:
+                print('.', end='', flush=True)
                 target = term.apply(model.get_layer_activations_of_neuron(layer_index=hidden_layer + 1,
                                                                           neuron_index=term.get_neuron_index()))
 
@@ -36,11 +41,17 @@ def extract_rules(model):
                                                           rule_conclusion_map=rule_conclusion_map,
                                                           prior_rule_confidence=prior_rule_confidence))
 
+            print('done')
+
         # Merge layer-wise rules
         output_rule = initial_rule
         for hidden_layer in reversed(range(0, output_layer)):
+            print('Merging layer %d rules' % hidden_layer, end=' ', flush=True)
             output_rule = substitute(total_rule=output_rule, intermediate_rules=layer_rulesets[hidden_layer])
+            print('done')
 
         class_rules[output_class] = output_rule
+
+        print(' -------------------------------------------------------------------------------------------------- ')
 
     return class_rules
