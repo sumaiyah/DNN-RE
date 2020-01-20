@@ -15,16 +15,17 @@ def predict_test_instance(neuron_values, rules):
     neuron_to_value_map = {Neuron(layer=0, index=i): neuron_values[i] for i in range(len(neuron_values))}
 
     max_class = None
-    max_class_conf = 0
+    max_class_score = 0
 
     for output_class in rules.keys():
         output_class_rule = rules[output_class]
 
-        confidence = output_class_rule.evaluate(neuron_to_value_map)
+        score = output_class_rule.evaluate_rule_by_confidence(neuron_to_value_map)
+        # score = output_class_rule.evaluate_rule_by_majority_voting(neuron_to_value_map)
 
-        if confidence > max_class_conf:
+        if score > max_class_score:
             max_class = output_class
-            max_class_conf = confidence
+            max_class_score = score
 
     if max_class:
         return max_class.index

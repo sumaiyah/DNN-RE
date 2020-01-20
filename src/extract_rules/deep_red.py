@@ -4,6 +4,7 @@ from rules.C5 import C5
 
 from logic_manipulator.substitute_rules import substitute
 
+
 def extract_rules(model):
     class_rules = {}
 
@@ -11,11 +12,11 @@ def extract_rules(model):
         layer_rulesets = [Ruleset() for _ in range(0, model.n_layers)]
 
         initial_rule = Rule.initial_rule(output_layer=model.n_layers - 1,
-                                        neuron_index=output_class.index,
-                                        class_name=output_class.name,
-                                        threshold=0.5)
+                                         neuron_index=output_class.index,
+                                         class_name=output_class.name,
+                                         threshold=0.5)
 
-        output_layer = model.n_layers-1
+        output_layer = model.n_layers - 1
         layer_rulesets[output_layer].add_rules({initial_rule})
 
         # Extract layer-wise rules
@@ -23,7 +24,7 @@ def extract_rules(model):
             print('Extracting layer %d rules:' % hidden_layer)
             predictors = model.get_layer_activations(layer_index=hidden_layer)
 
-            term_confidences = layer_rulesets[hidden_layer+1].get_terms_with_conf_from_rule_premises()
+            term_confidences = layer_rulesets[hidden_layer + 1].get_terms_with_conf_from_rule_premises()
             terms = term_confidences.keys()
 
             for _ in terms:
@@ -40,7 +41,6 @@ def extract_rules(model):
                 layer_rulesets[hidden_layer].add_rules(C5(x=predictors, y=target,
                                                           rule_conclusion_map=rule_conclusion_map,
                                                           prior_rule_confidence=prior_rule_confidence))
-
             print('done')
 
         # Merge layer-wise rules

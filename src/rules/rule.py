@@ -79,21 +79,28 @@ class Rule:
         rule_str += ('\n' + 'Number of clauses: ' + str(n_clauses))
         return rule_str
 
-    def evaluate(self, data: Dict[Neuron, float]) -> float:
+    def evaluate_rule_by_confidence(self, data: Dict[Neuron, float]) -> float:
         """
-        Given a list of input neurons and their values, return proportion of clauses that satisfy the rule
+        Given a list of input neurons and their values, return the combined confidence of clauses that satisfy the rule
         """
-        # todo sort out how to evaluate a rule!
         confidence = 0
-        # total = 0
         for clause in self.premise:
-            if (clause.evaluate(data)):
+            if clause.evaluate(data):
                 confidence += clause.get_confidence()
-                # confidence += 1
-            # total += 1
 
-        # return confidence/total
         return confidence
+
+    def evaluate_rule_by_majority_voting(self, data: Dict[Neuron, float]) -> float:
+        """
+        Given a list of input neurons and their values, return the combined proportion of clauses that satisfy the rule
+        """
+        total = len(self.premise)
+        n_satisfied_clauses = 0
+        for clause in self.premise:
+            if clause.evaluate(data):
+                n_satisfied_clauses += 1
+
+        return n_satisfied_clauses/total
 
     @classmethod
     def from_term_set(cls, premise: Set[Term], conclusion: Union[Conclusion, Term], confidence: float):
