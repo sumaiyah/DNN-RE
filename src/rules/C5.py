@@ -60,11 +60,9 @@ def _parse_C5_rule_str(rule_str, rule_conclusion_map, prior_rule_confidence) -> 
 def C5(x: pd.DataFrame, y: pd.DataFrame, rule_conclusion_map, prior_rule_confidence) -> Set[Rule]:
     y = robjects.vectors.FactorVector(y)
 
-
-    # Default = C5.0Control(subset = TRUE, bands = 0, winnow = FALSE,
-    # noGlobalPruning = FALSE, CF = 0.25, minCases = 2,
-    # fuzzyThreshold = FALSE, sample = 0, seed = sample.int(4096, size = 1) -
-    # 1L, earlyStopping = TRUE, label = "outcome")
+    # Default = C5.0Control(subset = TRUE, bands = 0, winnow = FALSE, noGlobalPruning = FALSE, CF = 0.25, minCases = 2,
+    # fuzzyThreshold=FALSE, sample = 0, seed = sample.int(4096, size = 1) -1L, earlyStopping = TRUE, label = "outcome")
+    # C5_model = C50.C5_0(x=x, y=y, rules=True, control=C50.C5_0Control(winnow=True, minCases=(0.02*len(x))))
     C5_model = C50.C5_0(x=x, y=y, rules=True, control=C50.C5_0Control(winnow=True))
 
     C5_rules_str = C5_model.rx2('rules')[0]

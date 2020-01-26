@@ -38,6 +38,12 @@ def extract_rules(model):
 
                 prior_rule_confidence = term_confidences[term]
                 rule_conclusion_map = {True: term, False: term.negate()}
+
+                # rs = C5(x=predictors, y=target,
+                #         rule_conclusion_map=rule_conclusion_map,
+                #         prior_rule_confidence=prior_rule_confidence)
+                # print('C5 Generated: ', len(rs))
+                # layer_rulesets[hidden_layer].add_rules(rs)
                 layer_rulesets[hidden_layer].add_rules(C5(x=predictors, y=target,
                                                           rule_conclusion_map=rule_conclusion_map,
                                                           prior_rule_confidence=prior_rule_confidence))

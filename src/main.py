@@ -32,10 +32,16 @@ start_time = time.time()
 
 nn = Model(**params)
 print('Rule Extraction ...................................................................')
-nn.set_rules(extract_rules_2(nn))
-nn.print_rules()
-acc = evaluate_rules.accuracy(nn)
-print('Rule Extraction ...............................................................')
-
+nn.set_rules(extract_rules_1(nn))
 t = (time.time() - start_time)
-print("--- %s seconds ---" % t)
+print("--- Rule Extraction took %s seconds ---" % t)
+
+nn.save_rules()
+nn.print_rules()
+
+start_time = time.time()
+acc = evaluate_rules.accuracy(nn)
+t = (time.time() - start_time)
+print("--- Calculating Accuracy took %s seconds ---" % t)
+
+

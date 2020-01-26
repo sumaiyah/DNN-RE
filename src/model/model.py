@@ -5,12 +5,13 @@ Represent trained Neural Network model
 import pandas as pd
 import keras.models as keras
 
+
 class Model:
     """
     Represent trained neural network model
     """
 
-    def __init__(self,  model_path,  class_encodings, activations_path, train_data_path, test_data_path,
+    def __init__(self, model_path, class_encodings, activations_path, train_data_path, test_data_path,
                  recompute_layer_activations):
         self.model: keras.Model = keras.load_model(model_path)
         self.activations_path = activations_path
@@ -18,7 +19,7 @@ class Model:
         self.test_data_path = test_data_path
         self.class_encodings = class_encodings
 
-        self.output_class_to_rules = {} # DNF rule for each output class
+        self.output_class_to_rules = {}  # DNF rule for each output class
         self.n_layers = len(self.model.layers)
 
         if recompute_layer_activations:
@@ -55,6 +56,14 @@ class Model:
         """
         filename = self.activations_path + str(layer_index) + '.csv'
         return pd.read_csv(filename)['h_' + str(layer_index) + '_' + str(neuron_index)]
+
+    def save_rules(self):
+        import pickle
+        print('Writing rules to disk...', end='', flush=True)
+        with open('extracted_rules.txt', 'w') as output:
+            for rule in self.output_class_to_rules.values():
+                output.write(str(rule) + '\n')
+        print('done')
 
     def set_rules(self, rules):
         self.output_class_to_rules = rules

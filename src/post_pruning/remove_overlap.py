@@ -1,5 +1,6 @@
 from rules.rule import Rule
 
+# Note: this is just a test, not actually using this code yet
 
 def remove_overlapping_clauses(rules):
     # Test: to remove overlapping clauses between rules
