@@ -11,12 +11,12 @@ def extract_rules(model):
     for output_class in model.class_encodings:
         layer_rulesets = [Ruleset() for _ in range(0, model.n_layers)]
 
-        initial_rule = Rule.initial_rule(output_layer=model.n_layers - 1,
+        # Initial output layer rule
+        output_layer = model.n_layers - 1
+        initial_rule = Rule.initial_rule(output_layer=output_layer,
                                          neuron_index=output_class.index,
                                          class_name=output_class.name,
                                          threshold=0.5)
-
-        output_layer = model.n_layers - 1
         layer_rulesets[output_layer].add_rules({initial_rule})
 
         # Extract layer-wise rules
@@ -27,23 +27,21 @@ def extract_rules(model):
             term_confidences = layer_rulesets[hidden_layer + 1].get_terms_with_conf_from_rule_premises()
             terms = term_confidences.keys()
 
+            # how many terms iterating over
             for _ in terms:
                 print('.', end='', flush=True)
             print()
 
             for term in terms:
                 print('.', end='', flush=True)
+
+                #  y1', y2', ...ym' = t(h(x1)), t(h(x2)), ..., t(h(xm))
                 target = term.apply(model.get_layer_activations_of_neuron(layer_index=hidden_layer + 1,
                                                                           neuron_index=term.get_neuron_index()))
 
                 prior_rule_confidence = term_confidences[term]
                 rule_conclusion_map = {True: term, False: term.negate()}
 
-                # rs = C5(x=predictors, y=target,
-                #         rule_conclusion_map=rule_conclusion_map,
-                #         prior_rule_confidence=prior_rule_confidence)
-                # print('C5 Generated: ', len(rs))
-                # layer_rulesets[hidden_layer].add_rules(rs)
                 layer_rulesets[hidden_layer].add_rules(C5(x=predictors, y=target,
                                                           rule_conclusion_map=rule_conclusion_map,
                                                           prior_rule_confidence=prior_rule_confidence))

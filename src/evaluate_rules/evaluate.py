@@ -33,16 +33,30 @@ def predict_test_instance(neuron_values, rules):
         return np.random.randint(2)
 
 def accuracy(model: Model):
-    print('Calculating Accuracy...', end=' ', flush=True)
+    print('Calculating Accuracy\n')
     data_path = model.train_data_path
 
     x = pd.read_csv(data_path, usecols=(lambda column: column not in ['target']))
     y = pd.read_csv(data_path, usecols=(['target']))
 
+    # Progress bar
+    i = 0
+    for row in x.values:
+        if i % 1000 == 0:
+            print('.', end='')
+        i += 1
+    print()
+    i = 0
     # Calculate predicted class for each test_instance
     y_pred = []
     for row in x.values:
         y_pred.append(predict_test_instance(neuron_values=row, rules=model.output_class_to_rules))
+
+        # Progress bar
+        if i % 1000 == 0:
+            print('.', end='', flush=True)
+        i += 1
+    print()
 
     y['pred'] = y_pred
     y['correct'] = y['pred'] == y['target']

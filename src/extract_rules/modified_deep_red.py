@@ -10,16 +10,16 @@ def extract_rules(model):
 
     for output_class in model.class_encodings:
         # Initial rule
-        total_rule = Rule.initial_rule(output_layer=model.n_layers - 1,
+        output_layer = model.n_layers - 1
+        total_rule = Rule.initial_rule(output_layer=output_layer,
                                        neuron_index=output_class.index,
                                        class_name=output_class.name,
                                        threshold=0.5)
 
-        output_layer = model.n_layers - 1
-
         for hidden_layer in reversed(range(0, output_layer)):
             print('Extracting layer %d rules:' % hidden_layer)
 
+            # Layerwise rules only store all rules for current layer
             intermediate_rules = Ruleset()
 
             predictors = model.get_layer_activations(layer_index=hidden_layer)
@@ -27,12 +27,15 @@ def extract_rules(model):
             term_confidences = total_rule.get_terms_with_conf_from_rule_premises()
             terms = term_confidences.keys()
 
+            # how many terms iterating over
             for _ in terms:
                 print('.', end='', flush=True)
             print()
 
             for term in terms:
                 print('.', end='', flush=True)
+
+                # y1', y2', ...ym' = t(h(x1)), t(h(x2)), ..., t(h(xm))
                 target = term.apply(model.get_layer_activations_of_neuron(layer_index=hidden_layer + 1,
                                                                           neuron_index=term.get_neuron_index()))
 

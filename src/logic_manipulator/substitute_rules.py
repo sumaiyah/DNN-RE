@@ -12,7 +12,8 @@ def substitute(total_rule: Rule, intermediate_rules: Ruleset) -> Rule:
     new_premise_clauses = set()
 
     print('\nRule Premise Length: ', len(total_rule.get_premise()))
-    o = 0
+    premise_count = 0
+    print('--%d--' % premise_count)
 
     # for each clause in the total rule
     for old_premise_clause in total_rule.get_premise():
@@ -23,6 +24,7 @@ def substitute(total_rule: Rule, intermediate_rules: Ruleset) -> Rule:
             if clauses_to_append:
                 conj_new_premise_clauses.append(clauses_to_append)
 
+        # Print all clause combinations need to be iterated over
         n_clause_combs = 1
         for clause_set in conj_new_premise_clauses:
             n_clause_combs = n_clause_combs * len(clause_set)
@@ -34,18 +36,19 @@ def substitute(total_rule: Rule, intermediate_rules: Ruleset) -> Rule:
         # Itertools implementation does not build up intermediate results in memory
         conj_new_premise_clauses_combinations = itertools.product(*tuple(conj_new_premise_clauses))
 
-        # given tuples of ConjunctiveClauses
-        c = 0
+        # given tuples of ConjunctiveClauses that are all now conjunctions, union terms into a single clause
+        clause_comb_count = 0
         for premise_clause_tuple in conj_new_premise_clauses_combinations:
             new_clause = ConjunctiveClause()
             for premise_clause in premise_clause_tuple:
                 new_clause = new_clause.union(premise_clause)
             new_premise_clauses.add(new_clause)
-            c += 1
+            clause_comb_count += 1
 
-            if c % 10000 == 0:
+            if clause_comb_count % 10000 == 0:
                 print('.', end='', flush=True)
-        print('--%d--' % o)
-        o += 1
+
+        premise_count += 1
+        print('--%d--' % premise_count)
 
     return Rule(premise=new_premise_clauses, conclusion=total_rule.get_conclusion())
