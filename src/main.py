@@ -13,9 +13,9 @@ ClassEncoding = namedtuple('ClassEncoding', 'name index')  # model output classe
 # base_path = 'data/XOR-manual/'     # for manually constructed XOR network
 # base_path = 'data/BreastCancer/' # UCI breast cancer dataset
 # base_path = 'data/MNIST/'     # MNIST Handwritten dataset
-# base_path = 'data/LetterRecognition/'  # Letter Recognition Dataset
+base_path = 'data/LetterRecognition/'  # Letter Recognition Dataset
 # base_path = 'data/Artif-1/'  # Artificial Dataset 1
-base_path = 'data/Artif-2/'  # Artificial Dataset 2
+# base_path = 'data/Artif-2/'  # Artificial Dataset 2
 
 params = dict(
     class_encodings=(ClassEncoding(name='Zero', index=0), ClassEncoding(name='One', index=1)),
