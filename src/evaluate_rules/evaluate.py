@@ -20,8 +20,8 @@ def predict_test_instance(neuron_values, rules):
     for output_class in rules.keys():
         output_class_rule = rules[output_class]
 
-        score = output_class_rule.evaluate_rule_by_confidence(neuron_to_value_map)
-        # score = output_class_rule.evaluate_rule_by_majority_voting(neuron_to_value_map)
+        # score = output_class_rule.evaluate_rule_by_confidence(neuron_to_value_map)
+        score = output_class_rule.evaluate_rule_by_majority_voting(neuron_to_value_map)
 
         if score > max_class_score:
             max_class = output_class

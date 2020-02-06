@@ -13,6 +13,7 @@ class Ruleset:
     """
     Represents a set of disjunctive rules
     """
+
     def __init__(self, rules: Set[Rule] = None):
         if rules is None:
             rules = set()
@@ -28,7 +29,7 @@ class Ruleset:
         """
         premises = set()
         for rule in self.rules:
-            if conclusion==rule.get_conclusion():
+            if conclusion == rule.get_conclusion():
                 premises = premises.union(rule.get_premise())
 
         return premises
@@ -61,16 +62,9 @@ class Ruleset:
                 terms = terms.union(clause.get_terms())
         return terms
 
-    # TODO? is this helpful? def get_rules_as_dnf
-
     def __str__(self):
         ruleset_str = '\n'
         for rule in self.rules:
             ruleset_str += str(rule) + '\n'
 
         return ruleset_str
-
-
-
-
-
