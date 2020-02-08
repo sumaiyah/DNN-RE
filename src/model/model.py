@@ -11,17 +11,17 @@ class Model:
     Represent trained neural network model
     """
 
-    def __init__(self, class_encodings, datapath, recompute_layer_activations):
-        model_path = datapath + 'model.h5'
+    def __init__(self, class_encodings, data_path, recompute_layer_activations):
+        model_path = data_path + 'model.h5'
         self.model: keras.Model = keras.load_model(model_path)
-        self.datapath = datapath
+        self.data_path = data_path
         self.class_encodings = class_encodings
 
         self.output_class_to_rules = {}  # DNF rule for each output class
         self.n_layers = len(self.model.layers)
 
-        self.train_data_path = datapath + 'train_data.csv'
-        self.test_data_path = datapath + 'test_data.csv'
+        self.train_data_path = data_path + 'train_data.csv'
+        self.test_data_path = data_path + 'test_data.csv'
 
         if recompute_layer_activations:
             self.__compute_layerwise_activations()
@@ -44,20 +44,20 @@ class Model:
                              for i in range(0, self.model.layers[layer_index].output_shape[1])]
 
             activation_values = pd.DataFrame(data=partial_model.predict(data_x), columns=neuron_labels)
-            activation_values.to_csv(self.datapath + str(layer_index) + '.csv', index=False)
+            activation_values.to_csv(self.data_path + str(layer_index) + '.csv', index=False)
 
     def get_layer_activations(self, layer_index: int):
         """
         Return activation values given layer index
         """
-        filename = self.datapath + str(layer_index) + '.csv'
+        filename = self.data_path + str(layer_index) + '.csv'
         return pd.read_csv(filename)
 
     def get_layer_activations_of_neuron(self, layer_index: int, neuron_index: int):
         """
         Return activation values given layer index, only return the column for a given neuron index
         """
-        filename = self.datapath + str(layer_index) + '.csv'
+        filename = self.data_path + str(layer_index) + '.csv'
         return pd.read_csv(filename)['h_' + str(layer_index) + '_' + str(neuron_index)]
 
     def save_rules(self):

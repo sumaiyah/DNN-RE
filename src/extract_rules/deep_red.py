@@ -52,7 +52,7 @@ def extract_rules(model):
         for hidden_layer in reversed(range(0, output_layer)):
             print('Merging layer %d rules' % hidden_layer, end=' ', flush=True)
             output_rule = substitute(total_rule=output_rule, intermediate_rules=layer_rulesets[hidden_layer])
-            print('done')
+            print()
 
         class_rules[output_class] = output_rule
 
