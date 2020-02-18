@@ -72,8 +72,8 @@ class Rule:
 
     def __str__(self):
         # premise_str = [(str(clause) + '\n') for clause in self.get_premise()]
-        premise_str = [(str(clause)) for clause in self.get_premise()]
-        rule_str = "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.get_conclusion())
+        premise_str = [(str(clause)) for clause in self.premise]
+        rule_str = "IF " + (' OR '.join(premise_str)) + " THEN " + str(self.conclusion)
         n_clauses = len(self.premise)
 
         rule_str += ('\n' + 'Number of clauses: ' + str(n_clauses))
@@ -127,7 +127,7 @@ class Rule:
         """
         term_confidences = {}
 
-        for clause in self.get_premise():
+        for clause in self.premise:
             clause_confidence = clause.get_confidence()
             for term in clause.get_terms():
                 if term in term_confidences:

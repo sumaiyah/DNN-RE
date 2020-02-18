@@ -56,7 +56,6 @@ def _parse_C5_rule_str(rule_str, rule_conclusion_map, prior_rule_confidence) -> 
 
     return rules_set
 
-
 def C5(x: pd.DataFrame, y: pd.DataFrame, rule_conclusion_map, prior_rule_confidence) -> Set[Rule]:
     y = robjects.vectors.FactorVector(y)
 

@@ -5,7 +5,6 @@ Represent trained Neural Network model
 import pandas as pd
 import keras.models as keras
 
-
 class Model:
     """
     Represent trained neural network model
@@ -61,7 +60,6 @@ class Model:
         return pd.read_csv(filename)['h_' + str(layer_index) + '_' + str(neuron_index)]
 
     def save_rules(self):
-        import pickle
         print('Writing rules to disk...', end='', flush=True)
         with open('extracted_rules.txt', 'w') as output:
             for rule in self.output_class_to_rules.values():

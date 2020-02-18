@@ -50,8 +50,8 @@ class ConjunctiveClause:
 
     def union(self, other) -> 'ConjunctiveClause':
         # Return new conjunctive clause that has all terms from both
-        terms = self.get_terms().union(other.get_terms())
-        confidence = self.get_confidence() * other.get_confidence() # todo change this? see when called? its not right
+        terms = self.terms.union(other.get_terms())
+        confidence = self.confidence * other.get_confidence() # todo change this? see when called? its not right
 
         return ConjunctiveClause(terms=terms, confidence=confidence)
 
@@ -59,7 +59,7 @@ class ConjunctiveClause:
         """
         Evaluate clause with data Dict[Neuron, float]
         """
-        for term in self.get_terms():
+        for term in self.terms:
             if not term.apply(data[term.get_neuron()]):
                 return False
 

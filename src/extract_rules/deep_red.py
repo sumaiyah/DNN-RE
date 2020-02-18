@@ -1,9 +1,7 @@
 from rules.rule import Rule
 from rules.ruleset import Ruleset
 from rules.C5 import C5
-
 from logic_manipulator.substitute_rules import substitute
-
 
 def extract_rules(model):
     class_rules = {}

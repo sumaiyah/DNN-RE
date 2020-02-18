@@ -8,7 +8,6 @@ from rules.term import Term
 from rules.clause import ConjunctiveClause
 from rules.rule import Rule
 
-
 class Ruleset:
     """
     Represents a set of disjunctive rules
@@ -52,7 +51,6 @@ class Ruleset:
         return term_confidences
 
     def get_terms_from_rule_premises(self) -> Set[Term]:
-        # todo, do something with the rule confidence value!
         """
         Return all the terms present in the bodies of all the rules in the ruleset
         """
