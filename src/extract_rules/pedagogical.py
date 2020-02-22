@@ -21,13 +21,16 @@ def extract_rules(model):
 
     # Use C5 to get rules for the output class based on the input values
     rules = C5(x=x, y=y,
-               rule_conclusion_map={0: 0, 1: 1},
+               rule_conclusion_map={0: 0, 1: 1}, # for binary classification
+               # rule_conclusion_map={0: 0, 1: 1, 2: 2, 3: 3, 4: 4},
                prior_rule_confidence=1)
+
+    # print(rules)
 
     # Merge rules so that they are in Disjunctive Normal Form
     DNF_rules = merge(rules)
     # Should only exist 1 DNF rule per class
-    assert len(DNF_rules) == len(model.class_encodings), "Error: number of rules does not match number of classes"
+    # assert len(DNF_rules) >= len(model.class_encodings), "Error: Fewer rules than classes generated for C5"
     # TODO add default rules in case C5 returns no rules?
 
     # Return dictionary mapping from output class encoding to corresponding rule premises

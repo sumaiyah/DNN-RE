@@ -20,10 +20,10 @@ def evaluate(model):
     comprehensibility(model)
 
     # Compare features used
-    # TODO refactor this into its own .py file
-    features = set()
-    for class_rule in model.output_class_to_rules.values():
-        for clause in class_rule.get_premise():
-            for term in clause.get_terms():
-                features.add(term.get_neuron())
-    return features
+    # # TODO refactor this into its own .py file
+    # features = set()
+    # for class_rule in model.output_class_to_rules.values():
+    #     for clause in class_rule.get_premise():
+    #         for term in clause.get_terms():
+    #             features.add(term.get_neuron())
+    # return features

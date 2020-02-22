@@ -21,7 +21,7 @@ def classify_instance(model, inputs):
         # 1 DNF rule per classification
         class_rule = rules[output_class]
 
-        score = class_rule.evaluate_rule_by_confidence(neuron_to_value_map)
+        score = class_rule.evaluate_rule_by_majority_voting(neuron_to_value_map)
         if score > max_class_score:
             max_class = output_class
             max_class_score = score
@@ -32,18 +32,16 @@ def classify_instance(model, inputs):
     else:
         return np.random.randint(len(rules.keys()))
 
-def predict(model):
+def predict(model, data, rule_ex_mode):
     """
     Use rules to make predictions about test data
     """
-    # Load test data
-    X_test = pd.read_csv(model.test_data_path).drop(columns=['target'])
-
     # Evaluate each test instance separately
     y_pred = []
-    for instance in X_test.values:
-        y_pred.append(classify_instance(model=model, inputs=instance))
+    for data_instance_x in data:
+        y_pred.append(classify_instance(model=model, inputs=data_instance_x))
 
     # Save rule predictions
-    with open(model.data_path + 'RULE_predictions.txt', 'w') as file:
+    with open(model.data_path + ('%s_labels.txt' % rule_ex_mode), 'a') as file:
         file.write(' '.join([str(pred) for pred in y_pred]))
+        file.write('\n')

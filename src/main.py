@@ -1,51 +1,90 @@
-from model.model import Model
-from extract_rules.deep_red import extract_rules as extract_rules_1
-from extract_rules.modified_deep_red import extract_rules as extract_rules_2
-from extract_rules.pedagogical import extract_rules as pedagogical_extract_rules
-from evaluate_rules.evaluate import evaluate
-
-import time
-import memory_profiler
 from collections import namedtuple
 
-ClassEncoding = namedtuple('ClassEncoding', 'name index')  # model output classes
+import pandas as pd
+from sklearn.model_selection import StratifiedKFold
+from model.model import Model
+import time
+import memory_profiler
 
-base_path = '../../data/'
+from extract_rules.deep_red import extract_rules as DeepRED
+from evaluate_rules.predict import predict
 
-# data_path = base_path + 'Artif-1/' # Artificial Dataset 1
-# data_path = base_path + 'Artif-2/' # Artificial Dataset 2
-data_path = base_path + 'MB-ER/'    # for gene data estrogen receptor
-# data_path = base_path + 'BreastCancer/' # UCI breast cancer dataset
-# data_path = base_path + 'LetterRecognition/'  # Letter Recognition Dataset
-# data_path = base_path + 'MNIST/'     # MNIST Handwritten dataset
+# Encode each output class with an index
+ClassEncoding = namedtuple('ClassEncoding', 'name index')
 
-params = dict(
-    class_encodings=(ClassEncoding(name='Zero', index=0), ClassEncoding(name='One', index=1)),
-    data_path=data_path,
-    recompute_layer_activations=True
-)
-nn = Model(**params)
+# Column names
+ColNames = namedtuple('Columns', 'features target')
 
-print('Decompositional Rule Extraction ...................................................................')
-start_time = time.time()
-start_memory = memory_profiler.memory_usage()
-nn.set_rules(extract_rules_1(nn))
-t = (time.time() - start_time)
-m = memory_profiler.memory_usage()[0] - start_memory[0]
-print("--- Rule Extraction took %s seconds and used %s Mb to execute ---" % (t, m))
-nn.print_rules()
-decomp_features = evaluate(model=nn)
+# Data for a fold contains X (input) and y (target)
+FoldData = namedtuple('FoldData', 'X y')
 
-start_time = time.time()
-start_memory = memory_profiler.memory_usage()
-print('Pedagogical Rule Extraction ...................................................................')
-nn.set_rules(pedagogical_extract_rules(nn))
-t = (time.time() - start_time)
-m = memory_profiler.memory_usage()[0] - start_memory[0]
-print("--- Rule Extraction took %s seconds and used %s Mb to execute ---" % (t, m))
-nn.print_rules()
-ped_features = evaluate(model=nn)
+# Algorithm used for Rule Extraction
+RuleExMode = namedtuple('RuleExMode', 'name run')
 
-# TODO refactor and put this in evaluate()
-n_overlap = len(decomp_features.intersection(ped_features))
-print('Overlapping features: ', n_overlap)
+# -------------------------------------- Set Parameters -------------------------------------------
+# Main data location
+base_data_path = '../../data/'
+
+# Chosen dataset for Rule Extraction
+dataset_name = 'Artif-1' # Artificial Dataset 1
+
+# Target column name and subsequent class names
+target_col_name = 'y'
+class_encodings = (ClassEncoding('y0', index=0),
+                   ClassEncoding('y1', index=1))
+
+# Algorithm for extracting rules, DeepRED, Decomp, Pedagogical
+RE = RuleExMode(name='DeepRED', run=DeepRED)
+# ---------------------------------------- Pre-process data ----------------------------------------
+# Retrieve data for the dataset specified
+data_path = base_data_path + dataset_name + '/'
+data = pd.read_csv(data_path + 'data.csv')
+
+# Clear past rule extraction labels
+open(data_path + ('%s_labels.txt' % RE.name), 'a')
+
+# List of input feature names
+feature_col_names = list(data.columns)
+feature_col_names.remove(target_col_name)
+
+# Retrieve relevant data, split into input features (X) and target column (y)
+X = data[feature_col_names].values
+y = data[target_col_name].values
+# --------------------------------------------------------------------------------------------------
+
+fold_index = 0
+skf = StratifiedKFold(n_splits=5, random_state=1)
+for train_index, test_index in skf.split(X, y):
+
+    # Train and Test data are defined for each fold
+    train_data = FoldData(X=X[train_index], y=y[train_index])
+    test_data = FoldData(X=X[test_index], y=y[test_index])
+
+    # Instantiate Model for each fold
+    NN_model = Model(model_path=data_path + ('model_fold_%d.h5' % fold_index),
+                     col_names=ColNames(features=feature_col_names, target=target_col_name),
+                     class_encodings=class_encodings,
+                     train_data=train_data,
+                     test_data=test_data,
+                     activations_path=data_path,
+                     recompute_layer_activations=True)
+
+    # Extract Rules
+    start_time, start_memory = time.time(),  memory_profiler.memory_usage()[0]
+    NN_model.set_rules(RE.run(NN_model))
+    end_time, end_memory = time.time(), memory_profiler.memory_usage()[0]
+
+    # Save runtime information to disk i.e. time, RAM usage
+    with open(data_path + 'runtime.txt', 'a') as file:
+        file.write('Fold %d \n' % fold_index)
+        file.write('Time: %s seconds \n' % (end_time - start_time))
+        file.write('Memory: %s Mb \n' % (end_memory - start_memory))
+
+    # Use extracted rules to predict the outcome of X_test
+    # Save predictions to disk
+    predict(NN_model, data=NN_model.test_data.X, rule_ex_mode=RE.name)
+
+    fold_index += 1
+
+# Evaluate predictions
+
