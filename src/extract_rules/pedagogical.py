@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from logic_manipulator.merge import merge
@@ -8,36 +9,39 @@ def extract_rules(model):
     """
     Extract rules in a pedagogical manner using C5 on the outputs and inputs of the network
     """
-    data = pd.read_csv(model.train_data_path)
+    # Inputs to neural network. C5 requires DataFrame inputs
+    X = model.get_layer_activations(layer_index=0)
 
-    # x = train data input features
-    # TODO change this so it works with the original data? Can data cope and return rules where x parameters are
-    #  replaced with input feature real names
-    # x = data.drop(['target'], axis=1)
-    x = model.get_layer_activations(0)
+    # y = output classifications of neural network. C5 requires y to be a pd.Series
+    nn_model_predictions = np.argmax(model.model.predict(X), axis=1)
+    y = pd.Series(nn_model_predictions)
 
-    # y = train data data target variable
-    y = data['target']
+    assert len(X) == len(y), 'Unequal number of data instances and predictions'
 
-    # Use C5 to get rules for the output class based on the input values
-    rules = C5(x=x, y=y,
-               rule_conclusion_map={0: 0, 1: 1}, # for binary classification
-               # rule_conclusion_map={0: 0, 1: 1, 2: 2, 3: 3, 4: 4},
+    # Use C5 to extract rules using only input and output values of the network
+    # C5 returns disjunctive rules with conjunctive terms
+    rules = C5(x=X, y=y,
+               rule_conclusion_map={class_encoding.index: class_encoding.name
+                                    for class_encoding in model.class_encodings},
                prior_rule_confidence=1)
 
-    # print(rules)
-
     # Merge rules so that they are in Disjunctive Normal Form
+    # Now there should be only 1 rule per rule conclusion
+    # Ruleset is encapsulated/represented by a DNF rule
+    # DNF_rules is a Dict[ClassEncoding: Rul]
     DNF_rules = merge(rules)
-    # Should only exist 1 DNF rule per class
-    # assert len(DNF_rules) >= len(model.class_encodings), "Error: Fewer rules than classes generated for C5"
-    # TODO add default rules in case C5 returns no rules?
+    assert len(DNF_rules.keys()) == len(model.class_encodings), 'Should only exist 1 DNF rule per class'
 
+    print(DNF_rules)
+
+    # TODO add default rules in case C5 returns no rules?
     # Return dictionary mapping from output class encoding to corresponding rule premises
     # TODO refactor this part its very inefficient right now
     class_rules = {}
-    for rule in DNF_rules:
+    for rule in DNF_rules.values():
+        print(rule)
         for output_class in model.class_encodings:
             if output_class.index == rule.get_conclusion():
                 class_rules[output_class] = rule
-    return class_rules
+    print(class_rules)
+    # return class_rules

@@ -32,16 +32,14 @@ def classify_instance(model, inputs):
     else:
         return np.random.randint(len(rules.keys()))
 
-def predict(model, data, rule_ex_mode):
+def predict(model, data):
     """
-    Use rules to make predictions about test data
+    Use rules to make predictions about test data and return those predictions
     """
     # Evaluate each test instance separately
     y_pred = []
     for data_instance_x in data:
         y_pred.append(classify_instance(model=model, inputs=data_instance_x))
 
-    # Save rule predictions
-    with open(model.data_path + ('%s_labels.txt' % rule_ex_mode), 'a') as file:
-        file.write(' '.join([str(pred) for pred in y_pred]))
-        file.write('\n')
+    return y_pred
+

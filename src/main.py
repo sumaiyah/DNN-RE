@@ -7,6 +7,8 @@ import time
 import memory_profiler
 
 from extract_rules.deep_red import extract_rules as DeepRED
+from extract_rules.pedagogical import extract_rules as Pedagogical
+
 from evaluate_rules.predict import predict
 
 # Encode each output class with an index
@@ -19,7 +21,7 @@ ColNames = namedtuple('Columns', 'features target')
 FoldData = namedtuple('FoldData', 'X y')
 
 # Algorithm used for Rule Extraction
-RuleExMode = namedtuple('RuleExMode', 'name run')
+RuleExMode = namedtuple('RuleExMode', 'mode run')
 
 # -------------------------------------- Set Parameters -------------------------------------------
 # Main data location
@@ -34,14 +36,16 @@ class_encodings = (ClassEncoding('y0', index=0),
                    ClassEncoding('y1', index=1))
 
 # Algorithm for extracting rules, DeepRED, Decomp, Pedagogical
-RE = RuleExMode(name='DeepRED', run=DeepRED)
+# Ensure change both name, and run accordingly
+RE = RuleExMode(mode='Pedagogical', run=Pedagogical)
 # ---------------------------------------- Pre-process data ----------------------------------------
 # Retrieve data for the dataset specified
 data_path = base_data_path + dataset_name + '/'
 data = pd.read_csv(data_path + 'data.csv')
 
 # Clear past rule extraction labels
-open(data_path + ('%s_labels.txt' % RE.name), 'a')
+open(data_path + ('%s_labels.txt' % RE.mode), 'w').close()
+open(data_path + 'runtime.txt', 'w').close()
 
 # List of input feature names
 feature_col_names = list(data.columns)
@@ -69,10 +73,17 @@ for train_index, test_index in skf.split(X, y):
                      activations_path=data_path,
                      recompute_layer_activations=True)
 
-    # Extract Rules
+    # Extract Rules using chosen algorithm
     start_time, start_memory = time.time(),  memory_profiler.memory_usage()[0]
     NN_model.set_rules(RE.run(NN_model))
     end_time, end_memory = time.time(), memory_profiler.memory_usage()[0]
+
+    # Use ruleset to classify test data (X_test)
+    # Save rule-based predictions to {Decomp/Pedagogical/DeepRED}_labels.txt
+    rule_based_predictions = predict(NN_model, data=NN_model.test_data.X)
+    with open(data_path + ('%s_labels.txt' % RE.mode), 'a') as file:
+        file.write(' '.join([str(pred) for pred in rule_based_predictions]))
+        file.write('\n')
 
     # Save runtime information to disk i.e. time, RAM usage
     with open(data_path + 'runtime.txt', 'a') as file:
@@ -80,10 +91,7 @@ for train_index, test_index in skf.split(X, y):
         file.write('Time: %s seconds \n' % (end_time - start_time))
         file.write('Memory: %s Mb \n' % (end_memory - start_memory))
 
-    # Use extracted rules to predict the outcome of X_test
-    # Save predictions to disk
-    predict(NN_model, data=NN_model.test_data.X, rule_ex_mode=RE.name)
-
+    print('-------- end of fold %d -------------' % fold_index)
     fold_index += 1
 
 # Evaluate predictions

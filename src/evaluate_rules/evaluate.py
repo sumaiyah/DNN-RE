@@ -7,9 +7,6 @@ def evaluate(model):
     """
     Evaluate ruleset generated
     """
-    # Use ruleset to classify test data
-    predict(model)
-
     # Compute Accuracy
     accuracy(model)
 
