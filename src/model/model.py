@@ -5,19 +5,22 @@ Represent trained Neural Network model
 import pandas as pd
 import keras.models as keras
 
+
 class Model:
     """
     Represent trained neural network model
     """
-    def __init__(self, model_path, col_names, class_encodings, train_data, test_data, activations_path, recompute_layer_activations):
+
+    def __init__(self, model_path, col_names, output_classes, train_data, test_data, activations_path,
+                 recompute_layer_activations):
         model_path = model_path
         self.model: keras.Model = keras.load_model(model_path)
         self.activations_path = activations_path
 
         self.col_names = col_names
-        self.class_encodings = class_encodings
+        self.output_classes = output_classes
 
-        self.output_class_to_rules = {}  # DNF rule for each output class
+        self.rules = set()  # DNF rule for each output class
         self.n_layers = len(self.model.layers)
 
         self.train_data = train_data
@@ -60,18 +63,9 @@ class Model:
         filename = self.activations_path + str(layer_index) + '.csv'
         return pd.read_csv(filename)['h_' + str(layer_index) + '_' + str(neuron_index)]
 
-    def save_rules(self):
-        print('Writing rules to disk...', end='', flush=True)
-        with open('extracted_rules.txt', 'w') as output:
-            for rule in self.output_class_to_rules.values():
-                output.write(str(rule) + '\n')
-        print('done')
-
     def set_rules(self, rules):
-        self.output_class_to_rules = rules
+        self.rules = rules
 
     def print_rules(self):
-        for output_class in self.output_class_to_rules.keys():
-            print('CLASS: ', output_class.name)
-            print(self.output_class_to_rules[output_class])
-            print()
+        for rule in self.rules:
+            print(rule)

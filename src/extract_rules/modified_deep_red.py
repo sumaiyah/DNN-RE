@@ -13,7 +13,7 @@ def extract_rules(model):
         output_layer = model.n_layers - 1
         total_rule = Rule.initial_rule(output_layer=output_layer,
                                        neuron_index=output_class.index,
-                                       class_name=output_class.name,
+                                       output_class_name=output_class.name,
                                        threshold=0.5)
 
         for hidden_layer in reversed(range(0, output_layer)):

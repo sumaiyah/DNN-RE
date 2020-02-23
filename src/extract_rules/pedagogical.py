@@ -8,6 +8,7 @@ from rules.C5 import C5
 def extract_rules(model):
     """
     Extract rules in a pedagogical manner using C5 on the outputs and inputs of the network
+    Assigns model rules to extracted rules
     """
     # Inputs to neural network. C5 requires DataFrame inputs
     X = model.get_layer_activations(layer_index=0)
@@ -20,28 +21,16 @@ def extract_rules(model):
 
     # Use C5 to extract rules using only input and output values of the network
     # C5 returns disjunctive rules with conjunctive terms
+    # R
     rules = C5(x=X, y=y,
-               rule_conclusion_map={class_encoding.index: class_encoding.name
-                                    for class_encoding in model.class_encodings},
+               rule_conclusion_map=model.output_classes,
                prior_rule_confidence=1)
 
     # Merge rules so that they are in Disjunctive Normal Form
     # Now there should be only 1 rule per rule conclusion
     # Ruleset is encapsulated/represented by a DNF rule
-    # DNF_rules is a Dict[ClassEncoding: Rul]
+    # DNF_rules is a set of rules
     DNF_rules = merge(rules)
-    assert len(DNF_rules.keys()) == len(model.class_encodings), 'Should only exist 1 DNF rule per class'
+    assert len(DNF_rules) == len(model.output_classes), 'Should only exist 1 DNF rule per class'
 
-    print(DNF_rules)
-
-    # TODO add default rules in case C5 returns no rules?
-    # Return dictionary mapping from output class encoding to corresponding rule premises
-    # TODO refactor this part its very inefficient right now
-    class_rules = {}
-    for rule in DNF_rules.values():
-        print(rule)
-        for output_class in model.class_encodings:
-            if output_class.index == rule.get_conclusion():
-                class_rules[output_class] = rule
-    print(class_rules)
-    # return class_rules
+    return DNF_rules

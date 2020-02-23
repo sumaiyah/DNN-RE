@@ -32,7 +32,7 @@ def _parse_C5_rule_str(rule_str, rule_conclusion_map, prior_rule_confidence) -> 
 
         rule_data_variables = parse_variable_str_to_dict(rule_str_lines[line_index])
         n_rule_terms = rule_data_variables['conds']
-        rule_conclusion: Term = rule_conclusion_map[(rule_data_variables['class'])]
+        rule_conclusion = rule_conclusion_map[(rule_data_variables['class'])]
 
         # C5 rule confidence=(number of training cases correctly classified + 1)/(total training cases covered  + 2)
         rule_confidence = (rule_data_variables['ok'] + 1) / (rule_data_variables['cover'] + 2)

@@ -33,10 +33,10 @@ def merge(rules: Set[Rule]):
             # Unseen conclusion - initialise dictionary entry with Set of 1 conjunctive clause
             rule_conclusion_to_premises_map[conclusion] = premise
 
-    # Convert this dictionary into a dict of rules where each conclusion occurs only once, i.e. all rules are in DNF
-    DNF_rules = {}
+    # Convert this dictionary into a set of rules where each conclusion occurs only once, i.e. all rules are in DNF
+    DNF_rules = set()
     for conclusion in rule_conclusion_to_premises_map.keys():
-        DNF_rules[conclusion] = Rule(premise=rule_conclusion_to_premises_map[conclusion],
-                                     conclusion=conclusion)
+        DNF_rules.add(Rule(premise=rule_conclusion_to_premises_map[conclusion],
+                           conclusion=conclusion))
 
     return DNF_rules

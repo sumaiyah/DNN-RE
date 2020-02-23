@@ -4,22 +4,22 @@ from rules.C5 import C5
 from logic_manipulator.substitute_rules import substitute
 
 def extract_rules(model):
-    class_rules = {}
+    # Should be 1 DNF rule per class
+    DNF_rules = set()
 
-    for output_class in model.class_encodings:
+    for output_class in model.output_classes:
         layer_rulesets = [Ruleset() for _ in range(0, model.n_layers)]
 
         # Initial output layer rule
         output_layer = model.n_layers - 1
         initial_rule = Rule.initial_rule(output_layer=output_layer,
-                                         neuron_index=output_class.index,
-                                         class_name=output_class.name,
+                                         output_class=output_class,
                                          threshold=0.5)
         layer_rulesets[output_layer].add_rules({initial_rule})
 
         # Extract layer-wise rules
         for hidden_layer in reversed(range(0, output_layer)):
-            print('Extracting layer %d rules:' % hidden_layer)
+            print('\nExtracting layer %d rules:' % hidden_layer)
             predictors = model.get_layer_activations(layer_index=hidden_layer)
 
             term_confidences = layer_rulesets[hidden_layer + 1].get_terms_with_conf_from_rule_premises()
@@ -43,17 +43,14 @@ def extract_rules(model):
                 layer_rulesets[hidden_layer].add_rules(C5(x=predictors, y=target,
                                                           rule_conclusion_map=rule_conclusion_map,
                                                           prior_rule_confidence=prior_rule_confidence))
-            print('done')
 
         # Merge layer-wise rules
         output_rule = initial_rule
         for hidden_layer in reversed(range(0, output_layer)):
-            print('Merging layer %d rules' % hidden_layer, end=' ', flush=True)
+            print('\nSubstituting layer %d rules' % hidden_layer)
             output_rule = substitute(total_rule=output_rule, intermediate_rules=layer_rulesets[hidden_layer])
             print()
 
-        class_rules[output_class] = output_rule
+        DNF_rules.add(output_rule)
 
-        print(' -------------------------------------------------------------------------------------------------- ')
-
-    return class_rules
+    return DNF_rules

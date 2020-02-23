@@ -9,22 +9,26 @@ from rules import DELETE_UNSATISFIABLE_CLAUSES_FLAG
 
 from logic_manipulator.satisfiability import remove_unsatisfiable_clauses
 
-class Conclusion:
+class OutputClass:
     """
     Represent rule conclusion. Immutable and Hashable.
-    """
-    __slots__ = ['class_name']
 
-    def __init__(self, class_name: str):
-        super(Conclusion, self).__setattr__('class_name', class_name)
+    Each output class has a name and its relevant encoding in the network i.e. which output neuron it corresponds to
+    """
+    __slots__ = ['name', 'encoding']
+
+    def __init__(self, name: str, encoding: int):
+        super(OutputClass, self).__setattr__('name', name)
+        super(OutputClass, self).__setattr__('encoding', encoding)
 
     def __str__(self):
-        return 'OUT=' + self.class_name
+        return 'OUTPUT_CLASS=%s (Neuron %d)' % (self.name, self.encoding)
 
     def __eq__(self, other):
         return (
             self.__class__ == other.__class__ and
-            self.class_name == other.class_name
+            self.name == other.name and
+            self.encoding == other.encoding
         )
 
     def __setattr__(self, name, value):
@@ -32,7 +36,7 @@ class Conclusion:
         raise AttributeError(msg)
 
     def __hash__(self):
-        return hash((self.class_name))
+        return hash((self.name, self.encoding))
 
 class Rule:
     """
@@ -40,7 +44,7 @@ class Rule:
     """
     __slots__ = ['premise', 'conclusion']
 
-    def __init__(self, premise: Set[ConjunctiveClause], conclusion: Union[Term, Conclusion]):
+    def __init__(self, premise: Set[ConjunctiveClause], conclusion: Union[Term, OutputClass]):
         if DELETE_UNSATISFIABLE_CLAUSES_FLAG:
             premise = remove_unsatisfiable_clauses(clauses=premise)
 
@@ -53,7 +57,7 @@ class Rule:
     def get_premise(self) -> Set[ConjunctiveClause]:
         return self.premise
 
-    def get_conclusion(self) -> Union[Term, Conclusion]:
+    def get_conclusion(self) -> Union[Term, OutputClass]:
         return self.conclusion
 
     def __eq__(self, other):
@@ -103,21 +107,22 @@ class Rule:
         return n_satisfied_clauses/total
 
     @classmethod
-    def from_term_set(cls, premise: Set[Term], conclusion: Union[Conclusion, Term], confidence: float):
+    def from_term_set(cls, premise: Set[Term], conclusion: Union[OutputClass, Term], confidence: float):
         """
-        Construct Rule given a single clause as a set of terms
+        Construct Rule given a single clause as a set of terms and a colclusion
         """
         rule_premise = {ConjunctiveClause(terms=premise, confidence=confidence)}
         return cls(premise=rule_premise, conclusion=conclusion)
 
     @classmethod
-    def initial_rule(cls, output_layer, neuron_index, class_name, threshold):
+    def initial_rule(cls, output_layer, output_class, threshold):
         """
         Construct Initial Rule given parameters with default confidence value of 1
         """
-        rule_premise = ConjunctiveClause(terms={Term(Neuron(layer=output_layer, index=neuron_index), '>', threshold)},
+        rule_premise = ConjunctiveClause(terms={Term(Neuron(layer=output_layer,
+                                                            index=output_class.encoding), '>', threshold)},
                                          confidence=1)
-        rule_conclusion = Conclusion(class_name)
+        rule_conclusion = output_class
 
         return cls(premise={rule_premise}, conclusion=rule_conclusion)
 
