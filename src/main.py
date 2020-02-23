@@ -83,7 +83,7 @@ for train_index, test_index in skf.split(X, y):
     with open(data_path + ('%s_labels.txt' % RuleEx.mode), 'a') as file:
         file.write(' '.join([str(pred) for pred in rule_based_predictions]))
         file.write('\n')
-    #
+
     # # Save runtime information to disk i.e. time, RAM usage
     # with open(data_path + 'runtime.txt', 'a') as file:
     #     file.write('Fold %d \n' % fold_index)
