@@ -29,16 +29,18 @@ RuleExMode = namedtuple('RuleExMode', 'mode run')
 
 # -------------------------------------- Set Parameters -------------------------------------------
 # Chosen dataset for Rule Extraction
-# TODO move this to config file
+# dataset_name = 'Artif-2'  # Artificial Dataset 1
+# target_col_name, output_classes = get_configuration(dataset_name)
 dataset_name = 'Artif-2'  # Artificial Dataset 1
-target_col_name, output_classes = get_configuration(dataset_name)
+target_col_name = 'y'
+output_classes = (OutputClass(name='y0', encoding=0),
+                  OutputClass(name='y1', encoding=1))
 
 # Algorithm for extracting rules, DeepRED, MOD_DeepRED_C5, Pedagogical
 # Ensure change both mode, and run accordingly
 # RuleEx = RuleExMode(mode='Pedagogical', run=Pedagogical)
 # RuleEx = RuleExMode(mode='DeepRED_C5', run=DeepRED_C5)
 RuleEx = RuleExMode(mode='MOD_DeepRED_C5', run=MOD_DeepRED_C5)
-
 
 # ------------------------------------- Set data locations and initialise files -----------------------------------
 # Main data location
@@ -82,6 +84,7 @@ for fold_index in range(0, n_folds):
     with open(INFORMATION_PATH, 'a') as file:
         file.write('\n Fold %d \n' % fold_index)
 
+    # Get pre-specified train/test indices
     train_indices, test_indices = get_train_and_test_indices(fold_index, fold_indices_path=FOLD_INDICES_PATH)
 
     # Train and Test data are defined for each fold
