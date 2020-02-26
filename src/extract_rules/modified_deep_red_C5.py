@@ -6,19 +6,19 @@ from logic_manipulator.substitute_rules import substitute
 
 
 def extract_rules(model):
-    class_rules = {}
+    # Should be 1 DNF rule per class
+    DNF_rules = set()
 
-    for output_class in model.class_encodings:
-        # Initial rule
+    for output_class in model.output_classes:
         output_layer = model.n_layers - 1
+
+        # Total rule - Only keep 1 total rule in memory at a time
         total_rule = Rule.initial_rule(output_layer=output_layer,
-                                       neuron_index=output_class.index,
-                                       output_class_name=output_class.name,
+                                       output_class=output_class,
                                        threshold=0.5)
 
         for hidden_layer in reversed(range(0, output_layer)):
             print('Extracting layer %d rules:' % hidden_layer)
-
             # Layerwise rules only store all rules for current layer
             intermediate_rules = Ruleset()
 
@@ -45,11 +45,10 @@ def extract_rules(model):
                                                 rule_conclusion_map=rule_conclusion_map,
                                                 prior_rule_confidence=prior_rule_confidence))
 
-            print('done')
-            print('Merging layer %d rules' % hidden_layer, end=' ', flush=True)
+            print('\nSubstituting layer %d rules' % hidden_layer, end=' ', flush=True)
             total_rule = substitute(total_rule=total_rule, intermediate_rules=intermediate_rules)
             print('done')
 
-        class_rules[output_class] = total_rule
+        DNF_rules.add(total_rule)
 
-    return class_rules
+    return DNF_rules

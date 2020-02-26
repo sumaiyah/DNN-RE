@@ -4,6 +4,8 @@ Uses extracted rules to classify new instances from test data and store results 
 import random
 import numpy as np
 import pandas as pd
+import operator
+
 
 from rules.term import Neuron
 
@@ -15,21 +17,23 @@ def classify_instance(model, inputs):
     # Map of Neuron objects to values from input data
     neuron_to_value_map = {Neuron(layer=0, index=i): inputs[i] for i in range(len(inputs))}
 
-    # Assign score to each output class. Class with max score decides the classification of the instance
-    max_class = None
-    max_class_score = 0
-
     # Try each rule with input data and get a score
+    rule_scores = {}
     for rule in rules:
         # Score indicates how confident the rule is classifying this instance as the class
         score = rule.evaluate_rule_by_majority_voting(neuron_to_value_map)
+        rule_scores[rule] = score
 
-        if score > max_class_score:
-            max_class = rule.conclusion
-            max_class_score = score
+    # Assign score to each output class.
+    # Class with max score decides the classification of the instance
+    # If tie, choose randomly
+    if len(set(rule_scores.values())) == 1:
+        max_class = random.choice(list(rules)).conclusion
+    else:
+        max_class = max(rule_scores, key=rule_scores.get).conclusion
 
-    # If tie between 2 classes, return random class
-    return max_class if max_class else random.sample(rules, 1)[0]
+    # Return encoding of max rule i.e. neuron value
+    return max_class.encoding
 
 def predict(model, data):
     """

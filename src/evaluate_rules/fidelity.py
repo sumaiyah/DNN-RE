@@ -4,17 +4,10 @@ Evaluate fidelity of rules generated i.e. how well do they mimic the performance
 
 import pandas as pd
 
-def fidelity(model):
-    # Rule predictions
-    y_rule_predictions = open(model.data_path + 'RULE_predictions.txt', 'r').read().split(' ')
+def fidelity(predicted_labels, network_labels):
+    assert (len(predicted_labels) == len(network_labels)), "Error: number of labels inconsistent !"
 
-    # Neural Network predictions
-    y_nn_predictions = open(model.data_path + 'nn_predictions.txt', 'r').read().split(' ')
+    fid = sum(predicted_labels == network_labels) / len(predicted_labels)
 
-    assert (len(y_rule_predictions) == len(y_nn_predictions)), "Error: not equivalent number of values!"
-
-    # Finds matching elements between the 2 lists
-    matches = [y_rule_predictions[i]==y_nn_predictions[i] for i in range(len(y_rule_predictions))]
-
-    acc = sum(matches) / len(y_nn_predictions)
-    print('Fidelity: ', acc)
+    print('Fidelity: ', fid)
+    return fid

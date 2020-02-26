@@ -1,19 +1,13 @@
 """
 Evaluate accuracy of rules
 """
+import numpy as np
 
-import pandas as pd
 
-def accuracy(model):
-    # Rule predictions
-    y_rule_predictions = open(model.data_path + 'RULE_predictions.txt', 'r').read().split(' ')
-    # Predictions saved as strings. Need to be converted to ints
-    y_rule_predictions = [int(example) for example in y_rule_predictions]
+def accuracy(predicted_labels: np.array, true_labels: np.array):
+    assert (len(predicted_labels) == len(true_labels)), "Error: number of labels inconsistent !"
 
-    # True values
-    y_correct = pd.read_csv(model.test_data_path)['target'].values
+    accuracy = sum(predicted_labels == true_labels) / len(predicted_labels)
 
-    assert (len(y_rule_predictions) == len(y_correct)), "Error: not equivalent number of values!"
-
-    acc = sum(y_rule_predictions == y_correct) / len(y_correct)
-    print('Accuracy: ', acc)
+    print('acc: ', accuracy)
+    return accuracy
