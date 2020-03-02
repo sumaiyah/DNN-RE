@@ -22,6 +22,7 @@ def classify_instance(model, inputs):
     for rule in rules:
         # Score indicates how confident the rule is classifying this instance as the class
         score = rule.evaluate_rule_by_majority_voting(neuron_to_value_map)
+        # score = rule.evaluate_rule_by_confidence(neuron_to_value_map)
         rule_scores[rule] = score
 
     # Assign score to each output class.

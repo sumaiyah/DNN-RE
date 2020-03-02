@@ -31,7 +31,7 @@ RuleExMode = namedtuple('RuleExMode', 'mode run')
 # Chosen dataset for Rule Extraction
 # dataset_name = 'Artif-2'  # Artificial Dataset 1
 # target_col_name, output_classes = get_configuration(dataset_name)
-dataset_name = 'Artif-2'  # Artificial Dataset 1
+dataset_name = 'Artif-1'
 target_col_name = 'y'
 output_classes = (OutputClass(name='y0', encoding=0),
                   OutputClass(name='y1', encoding=1))
@@ -78,6 +78,9 @@ y = data[target_col_name].values
 feature_col_names = list(data.columns)
 feature_col_names.remove(target_col_name)
 
+# Stats for each fold
+fold_accuracies, fold_fids, fold_n_rules, fold_times, fold_mem = []
+
 # Perform Rule Extraction over each fold
 n_folds = 5
 for fold_index in range(0, n_folds):
@@ -106,6 +109,11 @@ for fold_index in range(0, n_folds):
     NN_model.set_rules(rules)
     end_time, end_memory = time.time(), memory_profiler.memory_usage()[0]
 
+    # Save runtime information to disk i.e. time, RAM usage
+    with open(INFORMATION_PATH, 'a') as file:
+        file.write('Time: %s seconds ' % (end_time - start_time))
+        file.write('Memory: %s Mb \n' % (end_memory - start_memory))
+
     # Use ruleset to classify test data (X_test)
     # Save rule-based predictions to {Decomp/Pedagogical/DeepRED}_labels.txt
     rule_based_predictions = predict(NN_model, data=NN_model.test_data.X)
@@ -113,16 +121,10 @@ for fold_index in range(0, n_folds):
         file.write(' '.join([str(pred) for pred in rule_based_predictions]))
         file.write('\n')
 
-    # Save runtime information to disk i.e. time, RAM usage
-    with open(INFORMATION_PATH, 'a') as file:
-        file.write('Time: %s seconds ' % (end_time - start_time))
-        file.write('Memory: %s Mb \n' % (end_memory - start_memory))
-
     # Evaluate predictions and save evaluation metrics to disk
     predicted_labels = get_labels(fold_index, label_path=RULE_PREDICTIONS_PATH)
     network_labels = get_labels(fold_index, label_path=NN_LABELS_PATH)
     true_labels = get_labels(fold_index, label_path=TRUE_LABELS_PATH)
-
     evaluate(model=NN_model,
              predicted_labels=predicted_labels,
              network_labels=network_labels,
