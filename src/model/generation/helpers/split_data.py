@@ -87,9 +87,10 @@ def stratified_k_fold(X, y, n_folds):
 
     Split data into folds and saves indices in cross_valiation/<n>_folds/data_split_indices.txt
     """
-    # Make directory or <n>_folds
+    # Make directory or <n>_folds/trained_models
     fold_dir = CROSS_VAL_DIR + '%d_folds/' % n_folds
     create_directory(dir_path=fold_dir)
+    create_directory(dir_path=fold_dir + 'trained_models')
 
     # Initialise split indices file
     split_indices_file_path = fold_dir + 'data_split_indices.txt'

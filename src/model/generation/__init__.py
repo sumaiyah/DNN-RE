@@ -7,6 +7,7 @@ DatasetMetaData = namedtuple('DatasetMetaData', 'name target_col output_classes 
 output_classes = (OutputClass(name='y0', encoding=0),
                   OutputClass(name='y1', encoding=1))
 DATASET_INFO = DatasetMetaData(name='Artif-2', target_col='y', output_classes=output_classes, n_inputs=5, n_outputs=2)
+N_FOLDS = 10
 
 DATASET_DIRECTORY = 'C:/Users/sumaiyah/OneDrive - University Of Cambridge/Project/DNN-RE-data/%s/' % DATASET_INFO.name
 

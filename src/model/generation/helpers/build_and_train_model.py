@@ -7,8 +7,8 @@ from keras.utils import to_categorical
 from sklearn.utils import class_weight
 import numpy as np
 
-from model.generation import DATASET_INFO, TEMP_DIR
-
+from model.generation import DATASET_INFO, TEMP_DIR, INITIALISATIONS_DIR
+from keras.models import load_model
 
 def create_model(layer_1, layer_2):
     # Input layer
@@ -35,7 +35,7 @@ def create_model(layer_1, layer_2):
 
 
 def build_and_train_model(X_train, y_train, X_test, y_test, batch_size, epochs, layer_1, layer_2, model_file_path,
-                          with_initilisation_flag=False):
+                          with_best_initilisation_flag=False):
     """
 
     Args:
@@ -48,7 +48,7 @@ def build_and_train_model(X_train, y_train, X_test, y_test, batch_size, epochs, 
         layer_1:
         layer_2:
         model_file_path: path to store trained nn model
-        with_initilisation_flag: if true, use initialisation saved as best_initialisation.h5
+        with_best_initilisation_flag: if true, use initialisation saved as best_initialisation.h5
 
     Returns:
         model_accuracy: accuracy of nn model
@@ -61,10 +61,10 @@ def build_and_train_model(X_train, y_train, X_test, y_test, batch_size, epochs, 
     # Weight classes due to imbalanced dataset
     class_weights = dict(enumerate(class_weight.compute_class_weight('balanced', np.unique(y_train), y_train)))
 
-    if with_initilisation_flag:
-        pass
-        # Use best saved initialisation
-        model = None
+    if with_best_initilisation_flag:
+        # Use best saved initialisation found earlier
+        best_initialisation_file_path = INITIALISATIONS_DIR + 'best_initialisation.h5'
+        model = load_model(best_initialisation_file_path)
     else:
         # Build and initialise new model
         model = create_model(layer_1, layer_2)

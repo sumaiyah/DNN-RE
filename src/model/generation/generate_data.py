@@ -6,10 +6,12 @@ from collections import OrderedDict
 import pandas as pd
 
 from model.generation.helpers import split_data
-from model.generation import DATA_PATH, DATASET_INFO
+from model.generation import DATA_PATH, DATASET_INFO, CROSS_VAL_DIR, N_FOLDS
+from model.generation.helpers.build_and_train_model import build_and_train_model
 from model.generation.helpers.generate_data import grid_search
-from model.generation import find_best_initialisation
+from model.generation import find_best_nn_initialisation
 from model.generation.helpers.init_dataset_dir import clean_up
+from model.generation.helpers.split_data import load_split_indices
 
 
 def load_data(dataset_info, data_path):
@@ -32,29 +34,50 @@ def load_data(dataset_info, data_path):
 
 
 def run(split_data_flag=False, grid_search_flag=False, find_best_initialisation_flag=False):
-    n_folds = 10
     X, y = load_data(DATASET_INFO, DATA_PATH)
 
-    # Split data into train and test. Only do this once
+    # 1. Split data into train and test. Only do this once
     if split_data_flag:
         print('Splitting data. WARNING: only do this once!')
         split_data.train_test_split(X=X, y=y, test_size=0.2)
-        split_data.stratified_k_fold(X=X, y=y, n_folds=n_folds)
+        split_data.stratified_k_fold(X=X, y=y, n_folds=N_FOLDS)
 
-    # Grid search over neural network hyper params to find optimal
+    # 2. Grid search over neural network hyper params to find optimal neural network hyperparameters
     if grid_search_flag:
         print('Performing grid search over hyper paramters WARNING this is very expensive')
         grid_search(X=X, y=y)
 
-    # Initialise 5 neural networks using 1 train test split
+    # TODO change this to read best grid search hyperparameters from disk
+    nn_hyperparameters = OrderedDict(batch_size=10,
+                                     epochs=50,
+                                     layer_1=10,
+                                     layer_2=5)
+
+    # 3. Initialise 5 neural networks using 1 train test split
     # Pick initialisation that yields the smallest ruleset
     if find_best_initialisation_flag:
-        # TODO change this to read best grid search hyperparameters from disk
-        batch_size, epochs, layer_1, layer_2 = 10, 50, 10, 5
-        hyperparameters = OrderedDict(batch_size=batch_size, epochs=epochs, layer_1=layer_1, layer_2=layer_2)
-        find_best_initialisation.run(X, y, hyperparameters)
 
+        find_best_nn_initialisation.run(X, y, nn_hyperparameters)
+
+    # 4. Build neural network for each fold using best initialisation found above
+    n_fold_cross_val_dir = CROSS_VAL_DIR + '%d_folds/' % N_FOLDS
+    for fold in range(0, N_FOLDS):
+        print('Training model for fold %d...' % fold, end='', flush=True)
+
+        # Split data using precomputed split indices
+        data_split_indices_file_path = n_fold_cross_val_dir + 'data_split_indices.txt'
+        train_index, test_index = load_split_indices(data_split_indices_file_path, fold_index=fold)
+        X_train, y_train, X_test, y_test = X[train_index], y[train_index], X[test_index], y[test_index]
+
+        # Model to be stored in <dataset name>\cross_validation\<n>_folds\trained_models\
+        model_file_path = n_fold_cross_val_dir + 'trained_models/model_%d.h5' % fold
+        build_and_train_model(X_train, y_train, X_test, y_test,
+                              **nn_hyperparameters,
+                              model_file_path=model_file_path,
+                              with_best_initilisation_flag=True)
+
+        print('done')
     clean_up()
 
 
-run(find_best_initialisation_flag=True)
+run()
