@@ -5,19 +5,17 @@ Represent trained Neural Network model
 import pandas as pd
 import keras.models as keras
 
-
 class Model:
     """
     Represent trained neural network model
     """
 
-    def __init__(self, model_path, col_names, output_classes, train_data, test_data, activations_path,
-                 recompute_layer_activations):
+    def __init__(self, model_path, output_classes, train_data, test_data, activations_path,):
         model_path = model_path
         self.model: keras.Model = keras.load_model(model_path)
         self.activations_path = activations_path
 
-        self.col_names = col_names
+        # self.col_names = col_names
         self.output_classes = output_classes
 
         self.rules = set()  # DNF rule for each output class
@@ -26,15 +24,13 @@ class Model:
         self.train_data = train_data
         self.test_data = test_data
 
-        if recompute_layer_activations:
-            self.__compute_layerwise_activations()
+        self.__compute_layerwise_activations()
 
     def __compute_layerwise_activations(self):
         """
         Store sampled activations for each layer in CSV files
         """
         # todo make this method work for func and non func keras models
-
         # Input features of training data
         data_x = self.train_data.X
 
@@ -48,6 +44,8 @@ class Model:
 
             activation_values = pd.DataFrame(data=partial_model.predict(data_x), columns=neuron_labels)
             activation_values.to_csv(self.activations_path + str(layer_index) + '.csv', index=False)
+
+        print('Computed layerwise activations.')
 
     def get_layer_activations(self, layer_index: int):
         """

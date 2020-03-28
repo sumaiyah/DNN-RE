@@ -3,7 +3,7 @@ Initialise the empty dataset directory
 
 `data.csv`
 `neural_network_initialisation/`
-    `initialisations/`
+    `best_initialisation.h5`
     `data_split_indices.txt`
 `results/`
     `grid_search_results.txt`
@@ -16,6 +16,8 @@ Initialise the empty dataset directory
         `trained_models/`
 """
 import os
+
+from model.generation import TEMP_DIR
 
 
 def create_directory(dir_path):
@@ -45,12 +47,23 @@ def run(dataset_name, path_to_data_folder):
     create_directory(base_path)
 
     # neural_network_initialisation/
-    # neural_network_initialisation/initialisations/
     create_directory(dir_path=base_path + 'neural_network_initialisation')
-    create_directory(dir_path=base_path + 'neural_network_initialisation/initialisations')
 
     # results
     create_directory(dir_path=base_path + 'results')
 
     # cross_validation/
     create_directory(dir_path=base_path + 'cross_validation')
+
+def clean_up():
+    def clear_dir(dir_path):
+        for file in os.listdir(dir_path):
+            if os.path.isdir(dir_path + file):
+                clear_dir(dir_path + file + '/')
+            else:
+                os.remove(dir_path + file)
+
+    # Remove temporary files at the end
+    print('Cleaning up temporary files...', end='', flush=True)
+    clear_dir(TEMP_DIR)
+    print('done')

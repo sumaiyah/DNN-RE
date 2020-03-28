@@ -53,8 +53,8 @@ def load_split_indices(file_path, fold_index=0):
         lines = file.readlines()
         assert len(lines) >= (2 * fold_index) + 2, 'Error: not enough information in fold indices file'
 
-        train_index = lines[(fold_index * 2) + 1].split(' ')[1:]
-        test_index = lines[(fold_index * 2) + 2].split(' ')[1:]
+        train_index = lines[(fold_index * 2)].split(' ')[1:]
+        test_index = lines[(fold_index * 2)+1].split(' ')[1:]
 
         # Convert string indices to ints
         train_index = [int(i) for i in train_index]
