@@ -47,10 +47,10 @@ class Neuron:
 
     def __str__(self):
         return 'h_' + str(self.layer) + ',' + str(self.index)
-
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
-        raise AttributeError(msg)
+    #
+    # def __setattr__(self, name, value):
+    #     msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
+    #     raise AttributeError(msg)
 
     def __eq__(self, other):
         return (
@@ -82,9 +82,9 @@ class Term:
     def __str__(self):
         return '(' + str(self.neuron) + ' ' + str(self.operator) + ' ' + str(self.threshold) + ')'
 
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
-        raise AttributeError(msg)
+    # def __setattr__(self, name, value):
+    #     msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
+    #     raise AttributeError(msg)
 
     def __eq__(self, other):
         return (

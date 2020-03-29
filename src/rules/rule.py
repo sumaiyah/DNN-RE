@@ -31,9 +31,9 @@ class OutputClass:
             self.encoding == other.encoding
         )
 
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
-        raise AttributeError(msg)
+    # def __setattr__(self, name, value):
+    #     msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
+    #     raise AttributeError(msg)
 
     def __hash__(self):
         return hash((self.name, self.encoding))
@@ -70,9 +70,9 @@ class Rule:
     def __hash__(self):
         return hash((self.conclusion))
 
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
-        raise AttributeError(msg)
+    # def __setattr__(self, name, value):
+    #     msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
+    #     raise AttributeError(msg)
 
     def __str__(self):
         # premise_str = [(str(clause) + '\n') for clause in self.get_premise()]

@@ -26,9 +26,9 @@ class ConjunctiveClause:
         terms_str = [str(term) for term in self.terms]
         return str(self.confidence)+'[' + ' AND '.join(terms_str) + ']'
 
-    def __setattr__(self, name, value):
-        msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
-        raise AttributeError(msg)
+    # def __setattr__(self, name, value):
+    #     msg = "'%s' is immutable, can't modify %s" % (self.__class__, name)
+    #     raise AttributeError(msg)
 
     def __eq__(self, other):
         return (
