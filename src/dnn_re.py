@@ -8,8 +8,7 @@ from evaluate_rules.evaluate import evaluate
 from evaluate_rules.predict import predict
 from model.model import Model
 from keras.models import load_model
-from model.generation import TEMP_DIR, DATASET_INFO, RULE_EX_MODE
-
+from src import TEMP_DIR, DATASET_INFO, RULE_EX_MODE
 
 import memory_profiler
 from collections import namedtuple
@@ -33,15 +32,6 @@ def run(X, y, train_index, test_index, model_file_path, label_file_path):
                      test_data=test_data,
                      activations_path=TEMP_DIR + 'activations/')
 
-    # Save labels to labels.csv:
-    # true data labels
-    label_data = {'id': test_index,
-                  'true_labels': y_test}
-    # neural network data labels. Use NN to predict X_test
-    nn_model = load_model(model_file_path)
-    nn_predictions = np.argmax(nn_model.predict(X_test), axis=1)
-    label_data['nn_labels'] = nn_predictions
-
     # Rule Extraction
     start_time, start_memory = time.time(), memory_profiler.memory_usage()[0]
     rules = RULE_EX_MODE.run(NN_model)
@@ -49,6 +39,16 @@ def run(X, y, train_index, test_index, model_file_path, label_file_path):
 
     # Use rules for prediction
     NN_model.set_rules(rules)
+
+    # Save labels to labels.csv:
+    # label - True data labels
+    label_data = {'id': test_index,
+                  'true_labels': y_test}
+    # label - Neural network data labels. Use NN to predict X_test
+    nn_model = load_model(model_file_path)
+    nn_predictions = np.argmax(nn_model.predict(X_test), axis=1)
+    label_data['nn_labels'] = nn_predictions
+    # label - Rule extraction labels
     rule_predictions = predict(rules, test_data.X)
     label_data['rule_%s_labels' % RULE_EX_MODE.mode] = rule_predictions
     pd.DataFrame(data=label_data).to_csv(label_file_path, index=False)

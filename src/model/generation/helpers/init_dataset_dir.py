@@ -17,8 +17,6 @@ Initialise the empty dataset directory
 """
 import os
 
-from model.generation import TEMP_DIR
-
 
 def create_directory(dir_path):
     """
@@ -32,6 +30,7 @@ def create_directory(dir_path):
         print("Directory ", dir_path, " Created ")
     except FileExistsError:
         print("Directory ", dir_path, " already exists")
+
 
 def run(dataset_name, path_to_data_folder):
     """
@@ -55,7 +54,9 @@ def run(dataset_name, path_to_data_folder):
     # cross_validation/
     create_directory(dir_path=base_path + 'cross_validation')
 
+
 def clean_up():
+    from src import TEMP_DIR
     def clear_dir(dir_path):
         for file in os.listdir(dir_path):
             if os.path.isdir(dir_path + file):

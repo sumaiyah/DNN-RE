@@ -1,7 +1,7 @@
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import GridSearchCV
 
-from model.generation import RESULTS_DIR
+from src import RESULTS_DIR
 from model.generation.helpers.build_and_train_model import create_model
 
 

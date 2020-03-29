@@ -3,11 +3,12 @@ Split data and save indices of the split for reproducibility
 """
 import os
 
+import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import ShuffleSplit  # Returns indices unlike train_test_split
 
 from model.generation.helpers.init_dataset_dir import create_directory
-from model.generation import CROSS_VAL_DIR, INITIALISATIONS_DIR
+from src import CROSS_VAL_DIR, INITIALISATIONS_DIR
 
 
 def save_split_indices(train_index, test_index, file_path):
@@ -138,3 +139,22 @@ def train_test_split(X, y, test_size=0.2):
         break
 
     print('Split data into train/test split for initialisation.')
+
+
+def load_data(dataset_info, data_path):
+    """
+
+    Args:
+        dataset_info: meta data about dataset e.g. name, target col
+        data_path: path to data.csv
+
+    Returns:
+        X: data input features
+        y: data target
+    """
+    data = pd.read_csv(data_path)
+
+    X = data.drop([dataset_info.target_col], axis=1).values
+    y = data[dataset_info.target_col].values
+
+    return X, y

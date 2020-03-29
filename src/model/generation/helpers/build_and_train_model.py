@@ -7,7 +7,7 @@ from keras.utils import to_categorical
 from sklearn.utils import class_weight
 import numpy as np
 
-from model.generation import DATASET_INFO, TEMP_DIR, INITIALISATIONS_DIR
+from src import DATASET_INFO, TEMP_DIR, INITIALISATIONS_DIR
 from keras.models import load_model
 
 def create_model(layer_1, layer_2):

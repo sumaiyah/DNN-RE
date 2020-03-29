@@ -9,9 +9,8 @@ from evaluate_rules.accuracy import accuracy
 from evaluate_rules.fidelity import fidelity
 from evaluate_rules.comprehensibility import comprehensibility
 import os
-import pandas as pd
 
-from model.generation import RULE_EX_MODE
+from src import RULE_EX_MODE
 
 
 def evaluate(rules, label_file_path):
