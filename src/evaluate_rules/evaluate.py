@@ -10,7 +10,7 @@ from evaluate_rules.fidelity import fidelity
 from evaluate_rules.comprehensibility import comprehensibility
 import os
 
-from src import RULE_EX_MODE
+from src import RULE_EXTRACTOR
 
 
 def evaluate(rules, label_file_path):
@@ -19,7 +19,7 @@ def evaluate(rules, label_file_path):
     """
     labels_df = pd.read_csv(label_file_path)
 
-    predicted_labels = labels_df['rule_%s_labels' % RULE_EX_MODE.mode]
+    predicted_labels = labels_df['rule_%s_labels' % RULE_EXTRACTOR.mode]
     true_labels = labels_df['true_labels']
     nn_labels = labels_df['nn_labels']
 

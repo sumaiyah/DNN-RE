@@ -7,14 +7,16 @@ from collections import OrderedDict
 import pandas as pd
 
 from model.generation.helpers import split_data, find_best_nn_initialisation
-from src import CROSS_VAL_DIR, N_FOLDS, RESULTS_DIR
 from model.generation.helpers.build_and_train_model import build_and_train_model
-from model.generation.helpers.generate_data import grid_search
+from model.generation.helpers.grid_search import grid_search
 from model.generation.helpers.init_dataset_dir import clean_up
 from model.generation.helpers.split_data import load_split_indices
+from src import N_FOLDS, N_FOLD_CV_SPLIT_INDICIES_FP, n_fold_model_fp, N_FOLD_RESULTS_FP, \
+    BATCH_SIZE, EPOCHS, LAYER_1, LAYER_2
 
 
-def run(X, y, split_data_flag=False, grid_search_flag=False, find_best_initialisation_flag=False, generate_fold_data_flag=False):
+def run(X, y, split_data_flag=False, grid_search_flag=False, find_best_initialisation_flag=False,
+        generate_fold_data_flag=False):
     print(N_FOLDS)
     """
 
@@ -37,10 +39,10 @@ def run(X, y, split_data_flag=False, grid_search_flag=False, find_best_initialis
         grid_search(X=X, y=y)
 
     # TODO change this to read best grid search hyperparameters from disk
-    nn_hyperparameters = OrderedDict(batch_size=100,
-                                     epochs=150,
-                                     layer_1=10,
-                                     layer_2=50)
+    nn_hyperparameters = OrderedDict(batch_size=BATCH_SIZE,
+                                     epochs=EPOCHS,
+                                     layer_1=LAYER_1,
+                                     layer_2=LAYER_2)
 
     # 3. Initialise 5 neural networks using 1 train test split
     # Pick initialisation that yields the smallest ruleset
@@ -49,34 +51,18 @@ def run(X, y, split_data_flag=False, grid_search_flag=False, find_best_initialis
 
     # 4. Build neural network for each fold using best initialisation found above
     if generate_fold_data_flag:
-
-        n_fold_cross_val_dir = CROSS_VAL_DIR + '%d_folds/' % N_FOLDS
-        nn_accuracies = []
         for fold in range(0, N_FOLDS):
-            print('Training model for fold %d...' % fold, end='', flush=True)
+            print('Training model %d/%d' % (fold, N_FOLDS))
 
             # Split data using precomputed split indices
-            data_split_indices_file_path = n_fold_cross_val_dir + 'data_split_indices.txt'
-            train_index, test_index = load_split_indices(data_split_indices_file_path, fold_index=fold)
+            train_index, test_index = load_split_indices(N_FOLD_CV_SPLIT_INDICIES_FP, fold_index=fold)
             X_train, y_train, X_test, y_test = X[train_index], y[train_index], X[test_index], y[test_index]
 
             # Model to be stored in <dataset name>\cross_validation\<n>_folds\trained_models\
-            model_file_path = n_fold_cross_val_dir + 'trained_models/model_%d.h5' % fold
-            nn_accuracy = build_and_train_model(X_train, y_train, X_test, y_test,
+            model_file_path = n_fold_model_fp(fold)
+            build_and_train_model(X_train, y_train, X_test, y_test,
                                   **nn_hyperparameters,
                                   model_file_path=model_file_path,
                                   with_best_initilisation_flag=True)
-            nn_accuracies.append(nn_accuracy)
-
-        # Save neural network accuracy to disk
-        # Path to cross validatd results. Initialise it with neural network accuracies
-        results_file_path = RESULTS_DIR + 'cross_val_rule_ex_results.csv'
-
-        results_df = pd.DataFrame(data={'nn_acc': nn_accuracies})
-        results_df.to_csv(results_file_path, index=False)
-
-        print('done')
-
     # Remove files from temp/
     clean_up()
-

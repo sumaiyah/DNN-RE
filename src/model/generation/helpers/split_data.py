@@ -1,14 +1,14 @@
 """
 Split data and save indices of the split for reproducibility
 """
-import os
 
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import ShuffleSplit  # Returns indices unlike train_test_split
+from sklearn.model_selection import StratifiedKFold
 
-from model.generation.helpers.init_dataset_dir import create_directory
-from src import CROSS_VAL_DIR, INITIALISATIONS_DIR
+from model.generation.helpers.init_dataset_dir import create_directory, clear_file
+from src import N_FOLD_CV_DP, N_FOLD_RULE_EX_MODE_DP, N_FOLD_RULES_DP, N_FOLD_CV_SPLIT_INDICIES_FP, \
+    NN_INIT_SPLIT_INDICES_FP, N_FOLD_MODELS_DP
 
 
 def save_split_indices(train_index, test_index, file_path):
@@ -52,30 +52,17 @@ def load_split_indices(file_path, fold_index=0):
     """
     with open(file_path, 'r') as file:
         lines = file.readlines()
-        assert len(lines) >= (2 * fold_index) + 2, 'Error: not enough information in fold indices file'
+        assert len(lines) >= (2 * fold_index) + 2, 'Error: not enough information in fold indices file %d < % d' \
+                                                   % (len(lines), (2 * fold_index) + 2)
 
         train_index = lines[(fold_index * 2)].split(' ')[1:]
-        test_index = lines[(fold_index * 2)+1].split(' ')[1:]
+        test_index = lines[(fold_index * 2) + 1].split(' ')[1:]
 
         # Convert string indices to ints
         train_index = [int(i) for i in train_index]
         test_index = [int(i) for i in test_index]
 
     return train_index, test_index
-
-
-def clear_file(file_path):
-    """
-
-    Args:
-        file_path:
-
-    Clear contents of a file given file path
-
-    """
-    if os.path.exists(file_path):
-        open(file_path, 'w').close()
-        print('Cleared contents of file %s' % file_path)
 
 
 def stratified_k_fold(X, y, n_folds):
@@ -86,16 +73,16 @@ def stratified_k_fold(X, y, n_folds):
         y: target
         n_folds: how many folds to split data into
 
-    Split data into folds and saves indices in cross_valiation/<n>_folds/data_split_indices.txt
+    Split data into folds and saves indices in to data_split_indices.txt
     """
-    # Make directory or <n>_folds/trained_models
-    fold_dir = CROSS_VAL_DIR + '%d_folds/' % n_folds
-    create_directory(dir_path=fold_dir)
-    create_directory(dir_path=fold_dir + 'trained_models')
+    # Make directory for
+    create_directory(dir_path=N_FOLD_CV_DP)  # cross_validation/<n>_folds/
+    create_directory(dir_path=N_FOLD_RULE_EX_MODE_DP)  # <n>_folds/rule_extraction/<ruleemode>/
+    create_directory(dir_path=N_FOLD_RULES_DP)  # <n>_folds/rule_extraction/<ruleemode>/rules_extracted
+    create_directory(dir_path=N_FOLD_MODELS_DP) # <n>_folds/trained_models
 
     # Initialise split indices file
-    split_indices_file_path = fold_dir + 'data_split_indices.txt'
-    clear_file(split_indices_file_path)
+    clear_file(N_FOLD_CV_SPLIT_INDICIES_FP)
 
     # Split data
     skf = StratifiedKFold(n_splits=n_folds, random_state=100)
@@ -104,10 +91,9 @@ def stratified_k_fold(X, y, n_folds):
     for train_index, test_index in skf.split(X, y):
         save_split_indices(train_index=train_index,
                            test_index=test_index,
-                           file_path=split_indices_file_path)
+                           file_path=N_FOLD_CV_SPLIT_INDICIES_FP)
 
     print('Split data into %d folds.' % n_folds)
-    # TODO save true labels??
 
 
 def train_test_split(X, y, test_size=0.2):
@@ -124,8 +110,7 @@ def train_test_split(X, y, test_size=0.2):
     """
 
     # Initialise split indices file
-    split_indices_file_path = INITIALISATIONS_DIR + 'data_split_indices.txt'
-    clear_file(split_indices_file_path)
+    clear_file(NN_INIT_SPLIT_INDICES_FP)
 
     # Split data
     rs = ShuffleSplit(n_splits=2, test_size=test_size, random_state=100)
@@ -133,7 +118,7 @@ def train_test_split(X, y, test_size=0.2):
     for train_index, test_index in rs.split(X):
         save_split_indices(train_index=train_index,
                            test_index=test_index,
-                           file_path=split_indices_file_path)
+                           file_path=NN_INIT_SPLIT_INDICES_FP)
 
         # Only want 1 split
         break

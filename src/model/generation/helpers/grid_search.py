@@ -1,7 +1,7 @@
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import GridSearchCV
 
-from src import RESULTS_DIR
+from src import NN_INIT_GRID_RESULTS_FP
 from model.generation.helpers.build_and_train_model import create_model
 
 
@@ -36,8 +36,7 @@ def grid_search(X, y):
     grid_result = grid.fit(X, y)
 
     # Write best results to file
-    grid_search_results_file_path = RESULTS_DIR + 'grid_search_results.txt'
-    with open(grid_search_results_file_path, 'w') as file:
+    with open(NN_INIT_GRID_RESULTS_FP, 'w') as file:
         file.write("Best: %f using %s \n" % (grid_result.best_score_, grid_result.best_params_))
 
         means = grid_result.cv_results_['mean_test_score']

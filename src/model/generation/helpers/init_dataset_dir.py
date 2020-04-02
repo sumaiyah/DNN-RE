@@ -1,19 +1,25 @@
 """
 Initialise the empty dataset directory
 
-`data.csv`
-`neural_network_initialisation/`
-    `best_initialisation.h5`
-    `data_split_indices.txt`
-`results/`
-    `grid_search_results.txt`
-    `labels.csv`
-    `rule_ex_results.csv`
-    TODO: `saved_rules`
-`cross_validation/`
-    `<n>_fold/`
-        `data_split_indices.txt`
-        `trained_models/`
+file structure
+
+<dataset-name>
+    data.csv
+    cross_validation/
+        <n>_folds/
+            rule_extraction/
+                <rule ex mode>/
+                    results.csv
+                    rules_extracted/
+                        fold_<n>.rules
+            trained_models/
+                fold_<n>_model.h5
+            data_split_indices.txt
+    neural_network_initialisation/
+        re_results.csv
+        grid_search_results.txt
+        data_split_indices.txt
+        best_initialisation.h5
 """
 import os
 
@@ -45,13 +51,10 @@ def run(dataset_name, path_to_data_folder):
     base_path = path_to_data_folder + dataset_name + '/'
     create_directory(base_path)
 
-    # neural_network_initialisation/
+    # <dataset_name>/neural_network_initialisation/
     create_directory(dir_path=base_path + 'neural_network_initialisation')
 
-    # results
-    create_directory(dir_path=base_path + 'results')
-
-    # cross_validation/
+    # <dataset_name>/cross_validation/
     create_directory(dir_path=base_path + 'cross_validation')
 
 
@@ -68,3 +71,17 @@ def clean_up():
     print('Cleaning up temporary files...', end='', flush=True)
     clear_dir(TEMP_DIR)
     print('done')
+
+
+def clear_file(file_path):
+    """
+
+    Args:
+        file_path:
+
+    Clear contents of a file given file path
+
+    """
+    if os.path.exists(file_path):
+        open(file_path, 'w').close()
+        print('Cleared contents of file %s' % file_path)

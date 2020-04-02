@@ -4,7 +4,6 @@ from rules.rule import Rule
 
 from logic_manipulator.substitute_rules import substitute
 
-
 def extract_rules(model):
     # Should be 1 DNF rule per class
     DNF_rules = set()

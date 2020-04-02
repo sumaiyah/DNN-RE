@@ -6,13 +6,15 @@ import random
 import numpy as np
 import pandas as pd
 
+from rules.rule import Rule
 from rules.term import Neuron
 
 # TODO this code is highly parallelizable!
+
 def predict(rules, X):
     """
     Args:
-        rules: rules used to classify instances in x
+        rules: rules used to classify instances in X
         X: input data as numpy array
 
     Returns: Numpy array of predictions.
@@ -26,8 +28,8 @@ def predict(rules, X):
         # Each output class given a score based on how many rules x satisifes
         class_ruleset_scores = {}
         for class_ruleset in rules:
-            score = class_ruleset.evaluate_rule_by_majority_voting(neuron_to_value_map)
-            # score = class_ruleset.evaluate_rule_by_confidence(neuron_to_value_map)
+            # score = class_ruleset.evaluate_rule_by_majority_voting(neuron_to_value_map)
+            score = class_ruleset.evaluate_rule_by_confidence(neuron_to_value_map)
 
             class_ruleset_scores[class_ruleset] = score
 

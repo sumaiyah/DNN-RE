@@ -7,7 +7,7 @@ from keras.utils import to_categorical
 from sklearn.utils import class_weight
 import numpy as np
 
-from src import DATASET_INFO, TEMP_DIR, INITIALISATIONS_DIR
+from src import DATASET_INFO, TEMP_DIR, NN_INIT_DP, BEST_NN_INIT_FP
 from keras.models import load_model
 
 def create_model(layer_1, layer_2):
@@ -63,10 +63,12 @@ def build_and_train_model(X_train, y_train, X_test, y_test, batch_size, epochs, 
 
     if with_best_initilisation_flag:
         # Use best saved initialisation found earlier
-        best_initialisation_file_path = INITIALISATIONS_DIR + 'best_initialisation.h5'
+        print('Training neural network with best initialisation')
+        best_initialisation_file_path = BEST_NN_INIT_FP
         model = load_model(best_initialisation_file_path)
     else:
         # Build and initialise new model
+        print('Training neural network with new random initialisation')
         model = create_model(layer_1, layer_2)
         model.save(TEMP_DIR + 'initialisation.h5')
 

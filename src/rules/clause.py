@@ -10,17 +10,20 @@ class ConjunctiveClause:
 
     Each conjunctive clause of terms has its own confidence value
     """
-    __slots__ = ['terms', 'confidence']
+    __slots__ = ['terms', 'confidence', 'rank_score']
 
     def __init__(self, terms: Set[Term] = None, confidence=1):
         if terms is None:
             terms = set()
+
+        rank_score = 0
 
         if DELETE_REDUNDANT_TERMS_FLAG:
             terms = remove_redundant_terms(terms)
 
         super(ConjunctiveClause, self).__setattr__('terms', terms)
         super(ConjunctiveClause, self).__setattr__('confidence', confidence)
+        super(ConjunctiveClause, self).__setattr__('rank_score', rank_score)
 
     def __str__(self):
         terms_str = [str(term) for term in self.terms]
@@ -47,6 +50,12 @@ class ConjunctiveClause:
 
     def get_confidence(self) -> float:
         return self.confidence
+
+    def set_rank_score(self, score):
+        self.rank_score = score
+
+    def get_rank_score(self):
+        return self.rank_score
 
     def union(self, other) -> 'ConjunctiveClause':
         # Return new conjunctive clause that has all terms from both
