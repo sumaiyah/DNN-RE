@@ -14,6 +14,7 @@ from model.generation.helpers.split_data import load_split_indices, load_data
 from src import N_FOLDS, DATASET_INFO, DATA_FP, RULE_EXTRACTOR, N_FOLD_RESULTS_FP, LABEL_FP, \
     n_fold_model_fp, n_fold_rules_fp, N_FOLD_CV_SPLIT_INDICIES_FP
 
+# 
 
 def cross_validate_re(X, y, extract_rules_flag=False, evaluate_rules_flag=False):
     # Path to cross validated results
