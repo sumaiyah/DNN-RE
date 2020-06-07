@@ -69,7 +69,7 @@ for fold in range(0, 1):#):
     X_train, y_train = X[train_index], y[train_index]
 
     # Load extracted rules from disk
-    print('Loading extracted rules from disk for fold %d/%d...' % (fold, N_FOLDS), end='', flush=True)
+    print('Loading extracted rules from disk for fold %d/%d...' % (fold+1, N_FOLDS), end='', flush=True)
     with open(n_fold_rules_fp(fold), 'rb') as rules_file:
         rules = pickle.load(rules_file)
     print('done')

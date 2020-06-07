@@ -52,7 +52,7 @@ def run(X, y, split_data_flag=False, grid_search_flag=False, find_best_initialis
     # 4. Build neural network for each fold using best initialisation found above
     if generate_fold_data_flag:
         for fold in range(0, N_FOLDS):
-            print('Training model %d/%d' % (fold, N_FOLDS))
+            print('Training model %d/%d' % (fold+1, N_FOLDS))
 
             # Split data using precomputed split indices
             train_index, test_index = load_split_indices(N_FOLD_CV_SPLIT_INDICIES_FP, fold_index=fold)

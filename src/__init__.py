@@ -3,7 +3,7 @@ from collections import namedtuple
 from configurations import get_configuration
 from extract_rules.modified_deep_red_C5 import extract_rules as MOD_DeepRED_C5
 
-DATASET_INFO = get_configuration(dataset_name='Artif-1')
+DATASET_INFO = get_configuration(dataset_name='MNIST')
 N_FOLDS = 10
 
 # Algorithm used for Rule Extraction

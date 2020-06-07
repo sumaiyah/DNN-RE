@@ -35,13 +35,13 @@ def cross_validate_re(X, y, extract_rules_flag=False, evaluate_rules_flag=False)
             rules, re_time, re_memory = dnn_re.run(X, y, train_index, test_index, model_file_path)
 
             # Save rules extracted
-            print('Saving fold %d/%d rules extracted...' % (fold, N_FOLDS), end='', flush=True)
+            print('Saving fold %d/%d rules extracted...' % (fold+1, N_FOLDS), end='', flush=True)
             with open(extracted_rules_file_path, 'wb') as rules_file:
                 pickle.dump(rules, rules_file)
             print('done')
 
             # Save rule extraction time and memory usage
-            print('Saving fold %d/%d results...' % (fold, N_FOLDS), end='', flush=True)
+            print('Saving fold %d/%d results...' % (fold+1, N_FOLDS), end='', flush=True)
             # Initialise empty results file
             if fold==0:
                 pd.DataFrame(data=[], columns=['fold']).to_csv(N_FOLD_RESULTS_FP, index=False)
@@ -67,7 +67,7 @@ def cross_validate_re(X, y, extract_rules_flag=False, evaluate_rules_flag=False)
             model_file_path = n_fold_model_fp(fold)
 
             # Load extracted rules from disk
-            print('Loading extracted rules from disk for fold %d/%d...' % (fold, N_FOLDS), end='', flush=True)
+            print('Loading extracted rules from disk for fold %d/%d...' % (fold+1, N_FOLDS), end='', flush=True)
             with open(n_fold_rules_fp(fold), 'rb') as rules_file:
                 rules = pickle.load(rules_file)
             print('done')
@@ -86,7 +86,7 @@ def cross_validate_re(X, y, extract_rules_flag=False, evaluate_rules_flag=False)
             pd.DataFrame(data=label_data).to_csv(LABEL_FP, index=False)
 
             # Evaluate rules
-            print('Evaulating rules extracted from fold %d/%d...' % (fold, N_FOLDS), end='', flush=True)
+            print('Evaulating rules extracted from fold %d/%d...' % (fold+1, N_FOLDS), end='', flush=True)
             re_results = evaluate(rules, LABEL_FP)
             print('done')
 
@@ -110,7 +110,7 @@ X, y = load_data(DATASET_INFO, DATA_FP)
 generate_data.run(X=X, y=y,
                   split_data_flag=True,
                   grid_search_flag=False,
-                  find_best_initialisation_flag=True,
+                  find_best_initialisation_flag=False,
                   generate_fold_data_flag=True)
 
 # Perform n fold cross validated rule extraction on the dataset
