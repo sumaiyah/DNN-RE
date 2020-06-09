@@ -109,12 +109,12 @@ X, y = load_data(DATASET_INFO, DATA_FP)
 # Generate neural networks from which rules are to be extracted
 generate_data.run(X=X, y=y,
                   split_data_flag=True,
-                  grid_search_flag=False,
+                  grid_search_flag=True,
                   find_best_initialisation_flag=False,
-                  generate_fold_data_flag=True)
+                  generate_fold_data_flag=False)
 
 # Perform n fold cross validated rule extraction on the dataset
-cross_validate_re(X, y, extract_rules_flag=True, evaluate_rules_flag=True)
+cross_validate_re(X, y, extract_rules_flag=False, evaluate_rules_flag=False)
 
 # Remove files from temp/
 clean_up()
