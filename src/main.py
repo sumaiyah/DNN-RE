@@ -3,6 +3,10 @@
 from model.generation import generate_data
 from model.generation.helpers.init_dataset_dir import clean_up
 from model.generation.helpers.split_data import load_data
+
+import sys
+sys.path.append("")
+
 from src import DATASET_INFO, DATA_FP
 
 # def cross_validate_re(X, y, extract_rules_flag=False, evaluate_rules_flag=False):
