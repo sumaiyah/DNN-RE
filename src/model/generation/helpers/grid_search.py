@@ -32,8 +32,11 @@ def grid_search(X, y):
 
     model = KerasClassifier(build_fn=create_model, verbose=0)
 
-    grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
+    print('hi1')
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5, verbose=0)
+    print('hi2')
     grid_result = grid.fit(X, y)
+    print('hi3')
 
     # Write best results to file
     with open(NN_INIT_GRID_RESULTS_FP, 'w') as file:

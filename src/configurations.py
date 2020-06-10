@@ -23,26 +23,26 @@ def get_configuration(dataset_name):
                           OutputClass(name='y1', encoding=1))
         dataset_info = DatasetMetaData(name=dataset_name, target_col='y', output_classes=output_classes, n_inputs=5,
                                        n_outputs=2)
-    elif dataset_name == 'MB-GE-ER':
-        output_classes = (OutputClass(name='-', encoding=0),
-                          OutputClass(name='+', encoding=1))
-        dataset_info = DatasetMetaData(name=dataset_name, target_col='ER_Expr', output_classes=output_classes,
-                                       n_inputs=1000, n_outputs=2)
-    elif dataset_name == 'BreastCancer':
-        output_classes = (OutputClass(name='M', encoding=0),
-                          OutputClass(name='B', encoding=1))
-        dataset_info = DatasetMetaData(name=dataset_name, target_col='diagnosis', output_classes=output_classes,
-                                       n_inputs=30, n_outputs=2)
-    elif dataset_name == 'LetterRecognition':
-        output_classes = (OutputClass(name='A', encoding=0),
-                          OutputClass(name='B-Z', encoding=1))
-        dataset_info = DatasetMetaData(name=dataset_name, target_col='letter', output_classes=output_classes,
-                                       n_inputs=16, n_outputs=2)
-    elif dataset_name == 'MNIST':
-        output_classes = (OutputClass(name='0', encoding=0),
-                          OutputClass(name='1-9', encoding=1))
-        dataset_info = DatasetMetaData(name=dataset_name, target_col='digit', output_classes=output_classes,
-                                       n_inputs=784, n_outputs=2)
+    # elif dataset_name == 'MB-GE-ER':
+    #     output_classes = (OutputClass(name='-', encoding=0),
+    #                       OutputClass(name='+', encoding=1))
+    #     dataset_info = DatasetMetaData(name=dataset_name, target_col='ER_Expr', output_classes=output_classes,
+    #                                    n_inputs=1000, n_outputs=2)
+    # elif dataset_name == 'BreastCancer':
+    #     output_classes = (OutputClass(name='M', encoding=0),
+    #                       OutputClass(name='B', encoding=1))
+    #     dataset_info = DatasetMetaData(name=dataset_name, target_col='diagnosis', output_classes=output_classes,
+    #                                    n_inputs=30, n_outputs=2)
+    # elif dataset_name == 'LetterRecognition':
+    #     output_classes = (OutputClass(name='A', encoding=0),
+    #                       OutputClass(name='B-Z', encoding=1))
+    #     dataset_info = DatasetMetaData(name=dataset_name, target_col='letter', output_classes=output_classes,
+    #                                    n_inputs=16, n_outputs=2)
+    # elif dataset_name == 'MNIST':
+    #     output_classes = (OutputClass(name='0', encoding=0),
+    #                       OutputClass(name='1-9', encoding=1))
+    #     dataset_info = DatasetMetaData(name=dataset_name, target_col='digit', output_classes=output_classes,
+    #                                    n_inputs=784, n_outputs=2)
     else:
         print('WARNING: invalid dataset name given!')
 
