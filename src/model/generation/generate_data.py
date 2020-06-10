@@ -6,7 +6,6 @@ from collections import OrderedDict
 
 from model.generation.helpers import split_data
 from model.generation.helpers.grid_search import grid_search
-from model.generation.helpers.init_dataset_dir import clean_up
 from src import N_FOLDS, BATCH_SIZE, EPOCHS, LAYER_1, LAYER_2
 
 
@@ -60,4 +59,4 @@ def run(X, y, split_data_flag=False, grid_search_flag=False, find_best_initialis
     #                               model_file_path=model_file_path,
     #                               with_best_initilisation_flag=True)
     # Remove files from temp/
-    clean_up()
+    # clean_up()

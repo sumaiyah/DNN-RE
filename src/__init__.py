@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from configurations import get_configuration
 
-DATASET_INFO = get_configuration(dataset_name='Artif-1')
+DATASET_INFO = get_configuration(dataset_name='Artif-2')
 N_FOLDS = 10
 
 # Algorithm used for Rule Extraction

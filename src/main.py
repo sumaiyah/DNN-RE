@@ -1,11 +1,8 @@
-# from evaluate_rules.evaluate import evaluate
-# from evaluate_rules.predict/ import predict
 from model.generation import generate_data
-from model.generation.helpers.init_dataset_dir import clean_up
 from model.generation.helpers.split_data import load_data
 
 import sys
-sys.path.append("")
+sys.path.append("/home/sk940/rds/hpc-work/final-gridsearch/DNN-RE/")
 
 from src import DATASET_INFO, DATA_FP
 
@@ -111,4 +108,4 @@ generate_data.run(X=X, y=y,
 # cross_validate_re(X, y, extract_rules_flag=False, evaluate_rules_flag=False)
 
 # Remove files from temp/
-clean_up()
+# clean_up()

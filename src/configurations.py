@@ -23,6 +23,14 @@ def get_configuration(dataset_name):
                           OutputClass(name='y1', encoding=1))
         dataset_info = DatasetMetaData(name=dataset_name, target_col='y', output_classes=output_classes, n_inputs=5,
                                        n_outputs=2)
+    elif dataset_name == 'MB-PAM50':
+        output_classes = (OutputClass(name='lumA', encoding=0),
+                          OutputClass(name='lumB', encoding=1),
+                          OutputClass(name='lumC', encoding=2),
+                          OutputClass(name='lumD', encoding=3),
+                          OutputClass(name='lumE', encoding=4))
+        dataset_info = DatasetMetaData(name=dataset_name, target_col='PAM50', output_classes=output_classes, n_inputs=1350,
+                                       n_outputs=5)
     # elif dataset_name == 'MB-GE-ER':
     #     output_classes = (OutputClass(name='-', encoding=0),
     #                       OutputClass(name='+', encoding=1))
