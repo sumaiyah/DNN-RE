@@ -17,7 +17,7 @@ LAYER_2 = 5
 # --------------------------------------------- File paths -----------------------------------------------------------
 # NB: FP/fp = file path, DP/dp = directory path
 
-DATASET_DP = 'C:/Users/sumaiyah/OneDrive - University Of Cambridge/Project/DNN-RE-data/%s/' % DATASET_INFO.name
+DATASET_DP = '/home/sk940/rds/hpc-work/final-gridsearch/DNN-RE-data/%s/' % DATASET_INFO.name
 DATA_FP = DATASET_DP + 'data.csv'
 
 # <dataset_name>/cross_validation/<n>_folds/
