@@ -5,5 +5,6 @@ The project is motivated by the work of the DeepRED algorithm that performs Rule
 
 If you have any questions feel free to message on sumaiyah.kola@outlook.com
 
+For how to run the software on your data, see [demo](https://github.com/ZohrehShams/IntegrativeRuleExtractionMethodology)
 
 
